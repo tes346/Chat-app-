@@ -1,17 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Chat App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>1-on-1 Chat</h2>
+    <div id="chat-container">
+        <div id="messages">
+            <div class="message received">Hello! How can I help you today?</div>
+        </div>
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="Type a message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
 
-<input type="text" id="messageInput" placeholder="Type message">
-<button onclick="sendMessage()">Send</button>
-
-<ul id="messages"></ul>
-
-<script type="module" src="app.js"></script>
+    <script src="intel.js"></script>
 </body>
 </html>
