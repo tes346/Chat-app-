@@ -54,3 +54,19 @@ onSnapshot(q, (snapshot) => {
     list.appendChild(li);
   });
 });
+const sendBtn = document.getElementById('send-btn');
+
+const sendBtn = document.getElementById('send-btn');
+const input = document.getElementById('user-input');
+const messages = document.getElementById('messages');
+
+sendBtn.onclick = () => {
+    if (input.value.trim() !== "") {
+        const msg = document.createElement('div');
+        msg.className = 'message sent';
+        msg.textContent = input.value;
+        messages.appendChild(msg);
+        input.value = "";
+        messages.scrollTop = messages.scrollHeight;
+    }
+};const sendBtn = document.getElementById('send-btn');
