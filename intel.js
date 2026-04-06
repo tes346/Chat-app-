@@ -1,93 +1,140 @@
+// 1. YOUR FIREBASE CONFIG (Updated from your screenshot)
 const firebaseConfig = {
-  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
+  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3qOD5BkBL_Qj4",
   authDomain: "chat-app-72173.firebaseapp.com",
   projectId: "chat-app-72173",
   storageBucket: "chat-app-72173.firebasestorage.app",
   messagingSenderId: "350285511724",
   appId: "1:350285511724:web:84c0128616b2880313e589",
-  measurementId: "G-RHBBRTWLVY"
+  measurementId: "G-RHBBRTWLVY",
+  databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com" // Ensure this matches your DB
 };
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
-// invisible recaptcha
-window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-  'size': 'invisible'
-});
+let currentRoomId = "";
 
-// Login Logic
-const sendOtpBtn = document.getElementById('send-otp-btn');
-const verifyOtpBtn = document.getElementById('verify-otp-btn');
-const phoneNumberInput = document.getElementById('phone-number');
-const otpCodeInput = document.getElementById('otp-code');
-const otpSection = document.getElementById('otp-section');
+// --- WAIT FOR PAGE TO LOAD ---
+window.onload = () => {
+    const loginScreen = document.getElementById('login-screen');
+    const contactScreen = document.getElementById('contact-screen');
+    const chatContainer = document.getElementById('chat-container');
 
-sendOtpBtn.addEventListener('click', () => {
-    const number = phoneNumberInput.value;
-    auth.signInWithPhoneNumber(number, window.recaptchaVerifier)
+    // --- THE "REMEMBER ME" PROCESS ---
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            console.log("User logged in:", user.phoneNumber);
+            loginScreen.style.display = "none";
+            showContactList(); 
+        } else {
+            loginScreen.style.display = "block";
+            contactScreen.style.display = "none";
+            chatContainer.style.display = "none";
+        }
+    });
+
+    // Setup Recaptcha
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'invisible'
+    });
+};
+
+// --- LOGIN FUNCTIONS ---
+document.getElementById('send-otp-btn').onclick = () => {
+    const phoneNumber = document.getElementById('phone-number').value;
+    if(!phoneNumber) return alert("Enter a number!");
+
+    auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
         .then((confirmationResult) => {
             window.confirmationResult = confirmationResult;
-            otpSection.style.display = "block";
+            document.getElementById('otp-section').style.display = "block";
             alert("Code sent!");
-        }).catch((error) => alert(error.message));
-});
+        }).catch((error) => {
+            alert("Error: " + error.message);
+            console.error(error);
+        });
+};
 
-verifyOtpBtn.addEventListener('click', () => {
-    const code = otpCodeInput.value;
+document.getElementById('verify-otp-btn').onclick = () => {
+    const code = document.getElementById('otp-code').value;
     confirmationResult.confirm(code).then((result) => {
-        document.getElementById('login-screen').style.display = "none";
-        document.getElementById('chat-container').style.display = "block";
-        startChat();
-    }).catch((error) => alert("Wrong code!"));
-});
+        // Save user to the list
+        database.ref('users/' + result.user.uid).set({
+            phoneNumber: result.user.phoneNumber,
+            lastSeen: Date.now()
+        });
+    }).catch(() => alert("Invalid Code"));
+};
 
-// Chat Logic (Inside a function)
-function startChat() {
-    const messagesRef = database.ref('messages');
-    const sendBtn = document.getElementById('send-btn');
-    const userInput = document.getElementById('user-input');
-    const messagesDiv = document.getElementById('messages');
+// --- CONTACT LIST ---
+function showContactList() {
+    document.getElementById('contact-screen').style.display = "block";
+    document.getElementById('chat-container').style.display = "none";
+    
+    const contactButtons = document.getElementById('contact-buttons');
+    contactButtons.innerHTML = "Loading users..."; 
 
-    sendBtn.onclick = () => {
-        const text = userInput.value;
-        if (text.trim() !== "") {
-            messagesRef.push({
-                text: text,
-                sender: auth.currentUser.phoneNumber,
-                timestamp: Date.now()
-            });
-            userInput.value = "";
-        }
+    database.ref('users').on('value', (snapshot) => {
+        contactButtons.innerHTML = ""; 
+        snapshot.forEach((childSnapshot) => {
+            const friend = childSnapshot.val();
+            if (friend.phoneNumber !== auth.currentUser.phoneNumber) {
+                const btn = document.createElement('button');
+                btn.style = "width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; background:white; cursor:pointer;";
+                btn.innerHTML = "👤 " + friend.phoneNumber;
+                btn.onclick = () => openPrivateChat(friend.phoneNumber);
+                contactButtons.appendChild(btn);
+            }
+        });
+    });
+
+    document.getElementById('logout-btn').onclick = () => {
+        auth.signOut().then(() => location.reload());
     };
+}
 
-    messagesRef.on('child_added', (snapshot) => {
+// --- PRIVATE CHAT ROOMS ---
+function openPrivateChat(friendNumber) {
+    const myNumber = auth.currentUser.phoneNumber;
+    const ids = [myNumber, friendNumber].sort();
+    // Clean numbers to create a valid ID
+    currentRoomId = ids[0].replace(/\D/g, '') + "_" + ids[1].replace(/\D/g, '');
+
+    document.getElementById('contact-screen').style.display = "none";
+    document.getElementById('chat-container').style.display = "block";
+    
+    loadMessages();
+}
+
+function loadMessages() {
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.innerHTML = ""; 
+
+    database.ref('chats/' + currentRoomId).off(); // Prevent double loading
+    database.ref('chats/' + currentRoomId).on('child_added', (snapshot) => {
         const data = snapshot.val();
         const msg = document.createElement('div');
-        msg.className = data.sender === auth.currentUser.phoneNumber ? 'message sent' : 'message received';
+        msg.style = data.sender === auth.currentUser.phoneNumber ? 
+            "text-align:right; color:#075E54; margin:10px; padding:8px; background:#dcf8c6; border-radius:10px;" : 
+            "text-align:left; color:#000; margin:10px; padding:8px; background:#fff; border-radius:10px; border:1px solid #ddd;";
         msg.textContent = data.text;
         messagesDiv.appendChild(msg);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
 }
-// --- THE "REMEMBER ME" PROCESS ---
-// This runs the second the app opens on a phone
-firebase.auth().onAuthStateChanged((user) => {
-    const loginScreen = document.getElementById('login-screen');
-    const contactScreen = document.getElementById('contact-screen');
 
-    if (user) {
-        // Someone is already logged in!
-        console.log("User detected:", user.phoneNumber);
-        
-        // Skip login and go straight to the contacts
-        if (loginScreen) loginScreen.style.display = "none";
-        showContactList(); 
-    } else {
-        // No one is logged in, show the login box
-        if (loginScreen) loginScreen.style.display = "block";
-        if (contactScreen) contactScreen.style.display = "none";
+// --- SENDING ---
+document.getElementById('send-btn').onclick = () => {
+    const input = document.getElementById('user-input');
+    if (input.value.trim() !== "") {
+        database.ref('chats/' + currentRoomId).push({
+            text: input.value,
+            sender: auth.currentUser.phoneNumber,
+            timestamp: Date.now()
+        });
+        input.value = "";
     }
-});
-  
+};
