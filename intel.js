@@ -16,7 +16,6 @@ const auth = firebase.auth();
 const database = firebase.database();
 
 let currentRoomId = "";
-<div id="recaptcha-container"></div>
 // --- WAIT FOR PAGE TO LOAD ---
 window.onload = () => {.
     const loginScreen = document.getElementById('login-screen');
