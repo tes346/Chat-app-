@@ -9,64 +9,69 @@ body {
 }
 
 #chat-container {
-    width: 90%;
-    max-width: 400px;
-    height: 600px;
+    width: 100%;
+    max-width: 450px;
+    height: 90vh;
     background: white;
     display: flex;
     flex-direction: column;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    overflow: hidden;
 }
 
 #messages {
     flex: 1;
-    padding: 20px;
+    padding: 15px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    background-color: #e5ddd5; /* WhatsApp-like background */
 }
 
 .message {
-    padding: 10px 15px;
-    border-radius: 18px;
-    max-width: 70%;
-    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 15px;
+    max-width: 75%;
+    font-size: 15px;
+    line-height: 1.4;
 }
 
 .sent {
-    background-color: #0084ff;
-    color: white;
+    background-color: #dcf8c6;
     align-self: flex-end;
+    border-bottom-right-radius: 2px;
 }
 
 .received {
-    background-color: #e4e6eb;
-    color: black;
+    background-color: #ffffff;
     align-self: flex-start;
+    border-bottom-left-radius: 2px;
 }
 
 #input-area {
-    padding: 15px;
-    border-top: 1px solid #ddd;
+    padding: 12px;
+    background: #f0f0f0;
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    align-items: center;
 }
 
 input {
     flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
     outline: none;
 }
 
 button {
-    background: #0084ff;
+    background: #075e54;
     color: white;
     border: none;
-    padding: 0 15px;
+    padding: 10px 18px;
     border-radius: 20px;
+    font-weight: bold;
     cursor: pointer;
 }
