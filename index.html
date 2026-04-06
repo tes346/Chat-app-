@@ -6,13 +6,26 @@
     <title>Chat App</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
     <link rel="stylesheet" href="intel.css">
 </head>
 <body>
 
-    <div id="chat-container">
+    <div id="login-screen" style="padding: 20px; text-align: center;">
+        <h2>Login with Phone</h2>
+        <input type="text" id="phone-number" placeholder="+254...">
+        <div id="recaptcha-container"></div>
+        <button id="send-otp-btn">Send Code</button>
+        
+        <div id="otp-section" style="display:none; margin-top: 20px;">
+            <input type="text" id="otp-code" placeholder="Enter SMS Code">
+            <button id="verify-otp-btn">Verify & Chat</button>
+        </div>
+    </div>
+
+    <div id="chat-container" style="display:none;">
         <div id="messages"></div>
         <div id="input-area">
             <input type="text" id="user-input" placeholder="Type a message...">
