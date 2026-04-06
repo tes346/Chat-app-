@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -8,41 +9,51 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { font-family: sans-serif; margin: 0; background: #ece5dd; }
-        .screen { display: none; padding: 20px; text-align: center; }
-        input { width: 80%; padding: 10px; margin: 10px; border-radius: 5px; border: 1px solid #ccc; }
-        button { padding: 10px 20px; background: #25D366; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #chat-box { height: 400px; overflow-y: auto; background: white; padding: 10px; display: flex; flex-direction: column; }
-        .sent { align-self: flex-end; background: #dcf8c6; padding: 10px; margin: 5px; border-radius: 10px; }
-        .received { align-self: flex-start; background: #ffffff; padding: 10px; margin: 5px; border-radius: 10px; border: 1px solid #ddd; }
+        .screen { display: none; padding: 20px; text-align: center; height: 100vh; }
+        input { width: 85%; padding: 12px; margin: 10px; border-radius: 8px; border: 1px solid #ccc; }
+        button { width: 90%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* Contact Button Style */
+        .contact-item { 
+            background: white; border: 1px solid #ddd; padding: 15px; 
+            margin-bottom: 10px; border-radius: 10px; display: flex; 
+            align-items: center; justify-content: space-between; width: 100%;
+        }
+        
+        #chat-box { flex: 1; overflow-y: auto; background: #e5ddd5; padding: 15px; display: flex; flex-direction: column; }
+        .sent { align-self: flex-end; background: #dcf8c6; padding: 10px; margin: 5px; border-radius: 10px; max-width: 70%; }
+        .received { align-self: flex-start; background: white; padding: 10px; margin: 5px; border-radius: 10px; max-width: 70%; }
     </style>
 </head>
 <body>
     <div id="login-screen" class="screen" style="display:block;">
-        <h2>Login</h2>
+        <h2 style="color: #075E54;">WhatsApp Chat Login</h2>
         <input type="text" id="phone-number" placeholder="+254...">
         <div id="recaptcha-container"></div>
         <button id="send-otp-btn">Send SMS Code</button>
-        <div id="otp-section" style="display:none;">
+        <div id="otp-section" style="display:none; margin-top:20px;">
             <input type="text" id="otp-code" placeholder="6-digit code">
-            <button id="verify-otp-btn">Verify</button>
+            <button id="verify-otp-btn">Verify & Login</button>
         </div>
     </div>
 
-    <div id="profile-setup" class="screen">
-        <h2>Set Username</h2>
-        <input type="text" id="display-name" placeholder="Name">
-        <button id="save-profile-btn">Save</button>
-    </div>
-
     <div id="contact-screen" class="screen">
-        <h3>Contacts</h3>
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <h3>Contacts</h3>
+            <button id="logout-btn" style="width: auto; padding: 5px 10px; background: #ff4444;">Logout</button>
+        </div>
         <div id="contact-buttons"></div>
     </div>
 
-    <div id="chat-container" class="screen">
+    <div id="chat-container" class="screen" style="flex-direction: column; padding: 0;">
+        <div style="background: #075E54; color: white; padding: 15px; text-align: left;">
+            <span onclick="location.reload()" style="cursor:pointer;">← Back</span>
+        </div>
         <div id="chat-box"></div>
-        <input type="text" id="msg-input" placeholder="Message">
-        <button id="send-msg-btn">➤</button>
+        <div style="padding: 10px; background: white; display: flex;">
+            <input type="text" id="msg-input" placeholder="Type a message..." style="flex:1;">
+            <button id="send-msg-btn" style="width: 50px; margin: 0 5px;">➤</button>
+        </div>
     </div>
 
     <script src="intel.js"></script>
