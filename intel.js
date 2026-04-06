@@ -1,6 +1,6 @@
-// 1. YOUR FIREBASE CONFIG (Updated from your screenshot)
+// 1. YOUR FIREBASE CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
+  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3qOD5BkBL_Qj4",
   authDomain: "chat-app-72173.firebaseapp.com",
   projectId: "chat-app-72173",
   storageBucket: "chat-app-72173.firebasestorage.app",
@@ -26,7 +26,6 @@ window.onload = () => {
     // --- THE "REMEMBER ME" PROCESS ---
     auth.onAuthStateChanged((user) => {
         if (user) {
-            console.log("User logged in:", user.phoneNumber);
             loginScreen.style.display = "none";
             showContactList(); 
         } else {
@@ -52,16 +51,12 @@ document.getElementById('send-otp-btn').onclick = () => {
             window.confirmationResult = confirmationResult;
             document.getElementById('otp-section').style.display = "block";
             alert("Code sent!");
-        }).catch((error) => {
-            alert("Error: " + error.message);
-            console.error(error);
-        });
+        }).catch((error) => alert("Error: " + error.message));
 };
 
 document.getElementById('verify-otp-btn').onclick = () => {
     const code = document.getElementById('otp-code').value;
     confirmationResult.confirm(code).then((result) => {
-        // Save user to the list
         database.ref('users/' + result.user.uid).set({
             phoneNumber: result.user.phoneNumber,
             lastSeen: Date.now()
@@ -100,11 +95,10 @@ function showContactList() {
 function openPrivateChat(friendNumber) {
     const myNumber = auth.currentUser.phoneNumber;
     const ids = [myNumber, friendNumber].sort();
-    // Clean numbers to create a valid ID
     currentRoomId = ids[0].replace(/\D/g, '') + "_" + ids[1].replace(/\D/g, '');
 
     document.getElementById('contact-screen').style.display = "none";
-    document.getElementById('chat-container').style.display = "block";
+    document.getElementById('chat-container').style.display = "flex";
     
     loadMessages();
 }
@@ -113,7 +107,7 @@ function loadMessages() {
     const messagesDiv = document.getElementById('messages');
     messagesDiv.innerHTML = ""; 
 
-    database.ref('chats/' + currentRoomId).off(); // Prevent double loading
+    database.ref('chats/' + currentRoomId).off();
     database.ref('chats/' + currentRoomId).on('child_added', (snapshot) => {
         const data = snapshot.val();
         const msg = document.createElement('div');
