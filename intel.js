@@ -9,7 +9,8 @@ const firebaseConfig = {
   appId: "1:350285511724:web:84c0128616b2880313e589",
   measurementId: "G-RHBBRTWLVY"
 };
-    
+    databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
+};
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -22,10 +23,10 @@ window.onload = () => {
     auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('login-screen').style.display = "none";
-            database.ref('users/' + user.uid).once('value', snap => {
-                if (snap.exists()) { showContacts(); } 
-                else { document.getElementById('profile-setup').style.display = "block"; }
-            });
+            showContacts();
+        } else {
+            document.getElementById('login-screen').style.display = "block";
+            document.getElementById('contact-screen').style.display = "none";
         }
     });
 };
@@ -35,7 +36,7 @@ document.getElementById('send-otp-btn').onclick = () => {
     auth.signInWithPhoneNumber(phone, window.recaptchaVerifier).then(res => {
         window.confirmationResult = res;
         document.getElementById('otp-section').style.display = "block";
-    });
+    }).catch(err => alert(err.message));
 };
 
 document.getElementById('verify-otp-btn').onclick = () => {
@@ -43,15 +44,8 @@ document.getElementById('verify-otp-btn').onclick = () => {
     window.confirmationResult.confirm(code);
 };
 
-document.getElementById('save-profile-btn').onclick = () => {
-    const name = document.getElementById('display-name').value;
-    database.ref('users/' + auth.currentUser.uid).set({
-        displayName: name,
-        phoneNumber: auth.currentUser.phoneNumber
-    }).then(() => {
-        document.getElementById('profile-setup').style.display = "none";
-        showContacts();
-    });
+document.getElementById('logout-btn').onclick = () => {
+    auth.signOut().then(() => location.reload());
 };
 
 function showContacts() {
@@ -62,12 +56,13 @@ function showContacts() {
         snap.forEach(child => {
             const u = child.val();
             if (u.phoneNumber !== auth.currentUser.phoneNumber) {
-                const b = document.createElement('button');
-                b.innerText = u.displayName || u.phoneNumber;
+                const b = document.createElement('div');
+                b.className = "contact-item";
+                b.innerHTML = `<span><b>${u.displayName || 'User'}</b><br>${u.phoneNumber}</span> <span>➤</span>`;
                 b.onclick = () => {
                     currentRoomId = [auth.currentUser.phoneNumber, u.phoneNumber].sort().join('_');
                     document.getElementById('contact-screen').style.display = "none";
-                    document.getElementById('chat-container').style.display = "block";
+                    document.getElementById('chat-container').style.display = "flex";
                     loadMsgs();
                 };
                 div.appendChild(b);
@@ -87,16 +82,19 @@ function loadMsgs() {
             d.className = m.sender === auth.currentUser.phoneNumber ? "sent" : "received";
             box.appendChild(d);
         });
+        box.scrollTop = box.scrollHeight;
     });
 }
 
 document.getElementById('send-msg-btn').onclick = () => {
     const inp = document.getElementById('msg-input');
-    if (!inp.value) return;
+    if (!inp.value.trim()) return;
     database.ref('chats/' + currentRoomId).push({
         sender: auth.currentUser.phoneNumber,
-        text: inp.value
+        text: inp.value,
+        timestamp: Date.now()
     });
     inp.value = "";
 };
-          
+             
+
