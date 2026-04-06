@@ -96,5 +96,11 @@ document.getElementById('send-msg-btn').onclick = () => {
     });
     inp.value = "";
 };
-             
+ const sendBtn = document.querySelector('button');
+sendBtn.addEventListener('click', () => {
+    const phoneNumber = document.querySelector('input').value;
+    console.log("Attempting to send code to:", phoneNumber);
+    // This is where your API call logic goes
+});
+            
 
