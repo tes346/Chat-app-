@@ -4,24 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
-    
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    
     <link rel="stylesheet" href="intel.css">
 </head>
 <body>
-
-    <div id="login-screen" style="padding: 20px; text-align: center;">
-        <h2>Login with Phone</h2>
-        <input type="text" id="phone-number" placeholder="+254...">
+    <div id="login-screen" style="padding: 40px 20px; text-align: center;">
+        <h2 style="color: #075E54;">WhatsApp Chat Login</h2>
+        <p>Enter your phone number to start chatting</p>
+        <input type="text" id="phone-number" placeholder="+2547..." style="width: 80%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
         <div id="recaptcha-container"></div>
-        <button id="send-otp-btn">Send Code</button>
+        <button id="send-otp-btn" style="background: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;">Send SMS Code</button>
         
         <div id="otp-section" style="display:none; margin-top: 20px;">
-            <input type="text" id="otp-code" placeholder="Enter SMS Code">
-            <button id="verify-otp-btn">Verify & Chat</button>
+            <input type="text" id="otp-code" placeholder="6-digit code" style="width: 80%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
+            <button id="verify-otp-btn" style="background: #075E54; color: white; border: none; padding: 10px 20px; border-radius: 5px;">Verify & Start</button>
         </div>
     </div>
 
@@ -32,7 +30,6 @@
             <button id="send-btn">Send</button>
         </div>
     </div>
-
     <script src="intel.js"></script>
 </body>
 </html>
