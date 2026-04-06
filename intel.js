@@ -1,7 +1,6 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyCkk8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
+  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
   authDomain: "chat-app-72173.firebaseapp.com",
-  databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com",
   projectId: "chat-app-72173",
   storageBucket: "chat-app-72173.firebasestorage.app",
   messagingSenderId: "350285511724",
