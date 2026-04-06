@@ -8,16 +8,17 @@
     messagingSenderId: "350285511724",
     appId: "1:350285511724:web:a61643a04b5d2d2113e589",
     measurementId: "G-BTN960VVZ1",
-  };
+  databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
+    };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
 let currentRoomId = "";
-
+<div id="recaptcha-container"></div>
 // --- WAIT FOR PAGE TO LOAD ---
-window.onload = () => {
+window.onload = () => {.
     const loginScreen = document.getElementById('login-screen');
     const contactScreen = document.getElementById('contact-screen');
     const chatContainer = document.getElementById('chat-container');
