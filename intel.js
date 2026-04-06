@@ -1,13 +1,15 @@
 // 1. YOUR FIREBASE CONFIG (Updated from your screenshot)
 const firebaseConfig = {
-  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
+  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3qOD5BkBL_Qj4",
   authDomain: "chat-app-72173.firebaseapp.com",
   projectId: "chat-app-72173",
   storageBucket: "chat-app-72173.firebasestorage.app",
   messagingSenderId: "350285511724",
   appId: "1:350285511724:web:84c0128616b2880313e589",
-  measurementId: "G-RHBBRTWLVY"
+  measurementId: "G-RHBBRTWLVY",
+  databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
 };
+
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
