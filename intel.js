@@ -1,6 +1,6 @@
 // 1. YOUR FIREBASE CONFIG (Updated from your screenshot)
 const firebaseConfig = {
-  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3qOD5BkBL_Qj4",
+  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
   authDomain: "chat-app-72173.firebaseapp.com",
   projectId: "chat-app-72173",
   storageBucket: "chat-app-72173.firebasestorage.app",
