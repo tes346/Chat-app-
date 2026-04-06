@@ -1,4 +1,5 @@
 // 1. YOUR FIREBASE CONFIG (Updated from your screenshot)
+
 const firebaseConfig = {
   apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3qOD5BkBL_Qj4",
   authDomain: "chat-app-72173.firebaseapp.com",
@@ -9,7 +10,6 @@ const firebaseConfig = {
   measurementId: "G-RHBBRTWLVY",
   databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com" // Ensure this matches your DB
 };
-
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
