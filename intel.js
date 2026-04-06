@@ -9,109 +9,67 @@ const firebaseConfig = {
   appId: "1:350285511724:web:84c0128616b2880313e589",
   measurementId: "G-RHBBRTWLVY"
 };
+    databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
+};
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
-
 let currentRoomId = "";
 
-// --- WAIT FOR PAGE TO LOAD ---
+// 2. PAGE LOAD LOGIC
 window.onload = () => {
     const loginScreen = document.getElementById('login-screen');
     const contactScreen = document.getElementById('contact-screen');
-    const chatContainer = document.getElementById('chat-container');
     const profileSetup = document.getElementById('profile-setup');
 
     auth.onAuthStateChanged((user) => {
         if (user) {
             loginScreen.style.display = "none";
-            // Check if user has a name in the database
             database.ref('users/' + user.uid).once('value', (snapshot) => {
                 if (snapshot.exists() && snapshot.val().displayName) {
-                    profileSetup.style.display = "none";
                     showContactList();
                 } else {
-                    // Show setup screen if no name exists
                     profileSetup.style.display = "block";
-                    contactScreen.style.display = "none";
                 }
             });
         } else {
             loginScreen.style.display = "block";
             contactScreen.style.display = "none";
-            profileSetup.style.display = "none";
-            chatContainer.style.display = "none";
         }
     });
 
-    // Setup Recaptcha
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        'size': 'invisible'
-    });
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
 };
 
-// --- PROFILE ACTIONS ---
-document.getElementById('save-profile-btn').onclick = () => {
-    const name = document.getElementById('display-name').value;
-    if (!name) return alert("Please enter a username!");
+// 3. SEND MESSAGE LOGIC (The part that was failing)
+document.getElementById('send-msg-btn').onclick = () => {
+    const msgInput = document.getElementById('msg-input');
+    const text = msgInput.value.trim();
+    if (!text || !currentRoomId) return;
 
-    database.ref('users/' + auth.currentUser.uid).update({
-        displayName: name,
-        phoneNumber: auth.currentUser.phoneNumber,
-        photoURL: "" 
+    database.ref('chats/' + currentRoomId).push({
+        sender: auth.currentUser.phoneNumber,
+        text: text,
+        timestamp: Date.now()
     }).then(() => {
-        document.getElementById('profile-setup').style.display = "none";
-        showContactList();
+        msgInput.value = ""; // Clears the box
     });
 };
 
-// --- LOGIN FUNCTIONS ---
-document.getElementById('send-otp-btn').onclick = () => {
-    const phoneNumber = document.getElementById('phone-number').value;
-    if (!phoneNumber) return alert("Enter a number!");
-
-    auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
-        .then((confirmationResult) => {
-            window.confirmationResult = confirmationResult;
-            document.getElementById('otp-section').style.display = "block";
-        }).catch((error) => alert(error.message));
-};
-
-document.getElementById('verify-otp-btn').onclick = () => {
-    const code = document.getElementById('otp-code').value;
-    window.confirmationResult.confirm(code)
-        .catch(() => alert("Invalid Code"));
-};
-
-// --- CONTACT LIST ---
+// 4. CONTACTS & LOGIN FUNCTIONS
 function showContactList() {
     document.getElementById('contact-screen').style.display = "block";
     const contactButtons = document.getElementById('contact-buttons');
-    contactButtons.innerHTML = "Loading users...";
-
+    
     database.ref('users').on('value', (snapshot) => {
-        contactButtons.innerHTML = ""; 
-        snapshot.forEach((childSnapshot) => {
-            const friend = childSnapshot.val();
+        contactButtons.innerHTML = "";
+        snapshot.forEach((child) => {
+            const friend = child.val();
             if (friend.phoneNumber !== auth.currentUser.phoneNumber) {
                 const btn = document.createElement('button');
-                btn.style = "width:100%; padding:12px; margin-bottom:10px; border-radius:12px; border:1px solid #ddd; background:white; display:flex; align-items:center; cursor:pointer;";
-                
-                const nameToDisplay = friend.displayName ? friend.displayName : friend.phoneNumber;
-                const firstLetter = nameToDisplay.charAt(0).toUpperCase();
-
-                btn.innerHTML = `
-                    <div style="width:45px; height:45px; background:#075E54; color:white; border-radius:50%; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; overflow:hidden;">
-                        ${friend.photoURL ? `<img src="${friend.photoURL}" style="width:100%; height:100%; object-fit:cover;">` : firstLetter}
-                    </div>
-                    <div style="text-align:left;">
-                        <div style="font-weight:bold; color:#333;">${nameToDisplay}</div>
-                        <div style="font-size:12px; color:gray;">${friend.phoneNumber}</div>
-                    </div>
-                `;
-                
+                btn.className = "contact-btn"; // Make sure this CSS exists or style manually
+                btn.innerHTML = `<b>${friend.displayName || friend.phoneNumber}</b>`;
                 btn.onclick = () => openPrivateChat(friend.phoneNumber);
                 contactButtons.appendChild(btn);
             }
@@ -119,18 +77,11 @@ function showContactList() {
     });
 }
 
-document.getElementById('logout-btn').onclick = () => {
-    auth.signOut().then(() => location.reload());
-};
-
-// --- PRIVATE CHAT ROOMS ---
 function openPrivateChat(friendPhone) {
     const userPhone = auth.currentUser.phoneNumber;
     currentRoomId = [userPhone, friendPhone].sort().join('_');
-    
     document.getElementById('contact-screen').style.display = "none";
     document.getElementById('chat-container').style.display = "flex";
-    
     loadMessages();
 }
 
@@ -142,43 +93,32 @@ function loadMessages() {
             const msg = child.val();
             const div = document.createElement('div');
             div.innerText = msg.text;
-            div.style = msg.sender === auth.currentUser.phoneNumber ? 
-                "align-self:flex-end; background:#dcf8c6; padding:8px; margin:5px; border-radius:10px;" : 
-                "align-self:flex-start; background:white; padding:8px; margin:5px; border-radius:10px; border:1px solid #ddd;";
+            div.className = msg.sender === auth.currentUser.phoneNumber ? "sent" : "received";
             chatBox.appendChild(div);
         });
     });
 }
 
-document.getElementById('send-msg-btn').onclick = () => {
-    const text = document.getElementById('msg-input').value;
-    if (!text) return;
-
-    database.ref('chats/' + currentRoomId).push({
-        sender: auth.currentUser.phoneNumber,
-        text: text,
-        timestamp: Date.now()
-    });
-    document.getElementById('msg-input').value = "";
+// LOGIN BUTTONS
+document.getElementById('send-otp-btn').onclick = () => {
+    const phone = document.getElementById('phone-number').value;
+    auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+        .then(res => { window.confirmationResult = res; document.getElementById('otp-section').style.display = "block"; });
 };
-document.getElementById('send-msg-btn').onclick = () => {
-    const msgInput = document.getElementById('msg-input');
-    const text = msgInput.value.trim();
-    
-    if (!text) return; // Don't send empty messages
 
-    if (!currentRoomId) {
-        return alert("Error: No active chat room found!");
-    }
+document.getElementById('verify-otp-btn').onclick = () => {
+    const code = document.getElementById('otp-code').value;
+    window.confirmationResult.confirm(code);
+};
 
-    database.ref('chats/' + currentRoomId).push({
-        sender: auth.currentUser.phoneNumber,
-        text: text,
-        timestamp: Date.now()
+document.getElementById('save-profile-btn').onclick = () => {
+    const name = document.getElementById('display-name').value;
+    database.ref('users/' + auth.currentUser.uid).update({
+        displayName: name,
+        phoneNumber: auth.currentUser.phoneNumber
     }).then(() => {
-        msgInput.value = ""; // Clear the box after sending
-    }).catch((error) => {
-        alert("Database Error: " + error.message);
+        document.getElementById('profile-setup').style.display = "none";
+        showContactList();
     });
 };
-
+      
