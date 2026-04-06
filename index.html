@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="intel.css">
 </head>
 <body>
+
     <div id="login-screen" style="padding: 40px 20px; text-align: center;">
         <h2 style="color: #075E54;">WhatsApp Chat Login</h2>
         <p>Enter your phone number to start chatting</p>
@@ -23,13 +24,23 @@
         </div>
     </div>
 
-    <div id="chat-container" style="display:none;">
-        <div id="messages"></div>
-        <div id="input-area">
-            <input type="text" id="user-input" placeholder="Type a message...">
-            <button id="send-btn">Send</button>
+    <div id="contact-screen" style="display:none; padding: 20px;">
+        <button id="logout-btn" style="float: right; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px;">Logout</button>
+        <h2 style="color: #075E54; text-align: center;">Contacts</h2>
+        <div id="contact-buttons" style="margin-top: 20px;">
+            <p style="text-align: center; color: gray;">Loading users...</p>
         </div>
     </div>
+
+    <div id="chat-container" style="display:none;">
+        <div id="messages" style="height: 400px; overflow-y: scroll; border: 1px solid #ddd; margin-bottom: 10px; padding: 10px;"></div>
+        <div id="input-area" style="display: flex;">
+            <input type="text" id="user-input" placeholder="Type a message..." style="flex: 1; padding: 10px;">
+            <button id="send-btn" style="padding: 10px;">Send</button>
+        </div>
+        <button onclick="location.reload()" style="margin-top: 10px; width: 100%;">Back to Contacts</button>
+    </div>
+
     <script src="intel.js"></script>
 </body>
 </html>
