@@ -1,51 +1,58 @@
 // 1. YOUR FIREBASE CONFIG
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
+const firebaseConfig = {
+    apiKey: "AIzaSyCkk8FYqYgwcZTgbhEIG-3q0D5BkbL_Qj4",
     authDomain: "chat-app-72173.firebaseapp.com",
     projectId: "chat-app-72173",
     storageBucket: "chat-app-72173.firebasestorage.app",
     messagingSenderId: "350285511724",
     appId: "1:350285511724:web:a61643a04b5d2d2113e589",
     measurementId: "G-BTN960VVZ1",
-  databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
-    };
+    databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
+};
+
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
 let currentRoomId = "";
+
 // --- WAIT FOR PAGE TO LOAD ---
-window.onload = () => {.
+window.onload = () => {
     const loginScreen = document.getElementById('login-screen');
     const contactScreen = document.getElementById('contact-screen');
     const chatContainer = document.getElementById('chat-container');
-    const profileSetup = document.getElementById('profile-setup'); // Line 24
+    const profileSetup = document.getElementById('profile-setup');
 
     auth.onAuthStateChanged((user) => {
         if (user) {
             loginScreen.style.display = "none";
-            // Check if user has a name in database
+            // Check if user has a name in the database
             database.ref('users/' + user.uid).once('value', (snapshot) => {
                 if (snapshot.exists() && snapshot.val().displayName) {
                     profileSetup.style.display = "none";
                     showContactList();
                 } else {
+                    // Show setup screen if no name exists
                     profileSetup.style.display = "block";
                     contactScreen.style.display = "none";
                 }
             });
-        };
         } else {
             loginScreen.style.display = "block";
             contactScreen.style.display = "none";
             profileSetup.style.display = "none";
+            chatContainer.style.display = "none";
         }
+    });
+
+    // Setup Recaptcha
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'invisible'
     });
 };
 
-// --- CODE 2: SAVE PROFILE FUNCTION ---
+// --- PROFILE ACTIONS ---
 document.getElementById('save-profile-btn').onclick = () => {
     const name = document.getElementById('display-name').value;
     if (!name) return alert("Please enter a username!");
@@ -60,83 +67,67 @@ document.getElementById('save-profile-btn').onclick = () => {
     });
 };
 
-    // Setup Recaptcha
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        'size': 'invisible'
-    });
-};
-
 // --- LOGIN FUNCTIONS ---
 document.getElementById('send-otp-btn').onclick = () => {
     const phoneNumber = document.getElementById('phone-number').value;
-    if(!phoneNumber) return alert("Enter a number!");
+    if (!phoneNumber) return alert("Enter a number!");
 
     auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
         .then((confirmationResult) => {
             window.confirmationResult = confirmationResult;
             document.getElementById('otp-section').style.display = "block";
-            alert("Code sent!");
-        }).catch((error) => alert("Error: " + error.message));
+        }).catch((error) => alert(error.message));
 };
 
 document.getElementById('verify-otp-btn').onclick = () => {
     const code = document.getElementById('otp-code').value;
-    confirmationResult.confirm(code).then((result) => {
-        database.ref('users/' + result.user.uid).set({
-            phoneNumber: result.user.phoneNumber,
-            lastSeen: Date.now()
-        });
-    }).catch(() => alert("Invalid Code"));
+    window.confirmationResult.confirm(code)
+        .catch(() => alert("Invalid Code"));
 };
 
 // --- CONTACT LIST ---
 function showContactList() {
     document.getElementById('contact-screen').style.display = "block";
-    document.getElementById('chat-container').style.display = "none";
-    
     const contactButtons = document.getElementById('contact-buttons');
-    contactButtons.innerHTML = "Loading users..."; 
+    contactButtons.innerHTML = "Loading users...";
 
-            database.ref('users').on('value', (snapshot) => {
-            contactButtons.innerHTML = ""; 
-            snapshot.forEach((childSnapshot) => {
-                const friend = childSnapshot.val();
-                if (friend.phoneNumber !== auth.currentUser.phoneNumber) {
-                    const btn = document.createElement('button');
-                    btn.style = "width:100%; padding:12px; margin-bottom:10px; border-radius:12px; border:1px solid #ddd; background:white; display:flex; align-items:center; cursor:pointer;";
-                    
-                    // Logic: Use Name if it exists, otherwise use phone number
-                    const nameToDisplay = friend.displayName ? friend.displayName : friend.phoneNumber;
-                    const firstLetter = nameToDisplay.charAt(0).toUpperCase();
+    database.ref('users').on('value', (snapshot) => {
+        contactButtons.innerHTML = ""; 
+        snapshot.forEach((childSnapshot) => {
+            const friend = childSnapshot.val();
+            if (friend.phoneNumber !== auth.currentUser.phoneNumber) {
+                const btn = document.createElement('button');
+                btn.style = "width:100%; padding:12px; margin-bottom:10px; border-radius:12px; border:1px solid #ddd; background:white; display:flex; align-items:center; cursor:pointer;";
+                
+                const nameToDisplay = friend.displayName ? friend.displayName : friend.phoneNumber;
+                const firstLetter = nameToDisplay.charAt(0).toUpperCase();
 
-                    btn.innerHTML = `
-                        <div style="width:45px; height:45px; background:#075E54; color:white; border-radius:50%; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; overflow:hidden;">
-                            ${friend.photoURL ? `<img src="${friend.photoURL}" style="width:100%; height:100%; object-fit:cover;">` : firstLetter}
-                        </div>
-                        <div style="text-align:left;">
-                            <div style="font-weight:bold; color:#333;">${nameToDisplay}</div>
-                            <div style="font-size:12px; color:gray;">${friend.phoneNumber}</div>
-                        </div>
-                    `;
-                    
-                    btn.onclick = () => openPrivateChat(friend.phoneNumber);
-                    contactButtons.appendChild(btn);
-                }
-            });
+                btn.innerHTML = `
+                    <div style="width:45px; height:45px; background:#075E54; color:white; border-radius:50%; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; overflow:hidden;">
+                        ${friend.photoURL ? `<img src="${friend.photoURL}" style="width:100%; height:100%; object-fit:cover;">` : firstLetter}
+                    </div>
+                    <div style="text-align:left;">
+                        <div style="font-weight:bold; color:#333;">${nameToDisplay}</div>
+                        <div style="font-size:12px; color:gray;">${friend.phoneNumber}</div>
+                    </div>
+                `;
+                
+                btn.onclick = () => openPrivateChat(friend.phoneNumber);
+                contactButtons.appendChild(btn);
+            }
         });
-                  
-
-    document.getElementById('logout-btn').onclick = () => {
-        auth.signOut().then(() => location.reload());
-    };
+    });
 }
 
-// --- PRIVATE CHAT ROOMS ---
-function openPrivateChat(friendNumber) {
-    const myNumber = auth.currentUser.phoneNumber;
-    const ids = [myNumber, friendNumber].sort();
-    currentRoomId = ids[0].replace(/\D/g, '') + "_" + ids[1].replace(/\D/g, '');
+document.getElementById('logout-btn').onclick = () => {
+    auth.signOut().then(() => location.reload());
+};
 
+// --- PRIVATE CHAT ROOMS ---
+function openPrivateChat(friendPhone) {
+    const userPhone = auth.currentUser.phoneNumber;
+    currentRoomId = [userPhone, friendPhone].sort().join('_');
+    
     document.getElementById('contact-screen').style.display = "none";
     document.getElementById('chat-container').style.display = "flex";
     
@@ -144,31 +135,29 @@ function openPrivateChat(friendNumber) {
 }
 
 function loadMessages() {
-    const messagesDiv = document.getElementById('messages');
-    messagesDiv.innerHTML = ""; 
-
-    database.ref('chats/' + currentRoomId).off();
-    database.ref('chats/' + currentRoomId).on('child_added', (snapshot) => {
-        const data = snapshot.val();
-        const msg = document.createElement('div');
-        msg.style = data.sender === auth.currentUser.phoneNumber ? 
-            "text-align:right; color:#075E54; margin:10px; padding:8px; background:#dcf8c6; border-radius:10px;" : 
-            "text-align:left; color:#000; margin:10px; padding:8px; background:#fff; border-radius:10px; border:1px solid #ddd;";
-        msg.textContent = data.text;
-        messagesDiv.appendChild(msg);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    const chatBox = document.getElementById('chat-box');
+    database.ref('chats/' + currentRoomId).on('value', (snapshot) => {
+        chatBox.innerHTML = "";
+        snapshot.forEach((child) => {
+            const msg = child.val();
+            const div = document.createElement('div');
+            div.innerText = msg.text;
+            div.style = msg.sender === auth.currentUser.phoneNumber ? 
+                "align-self:flex-end; background:#dcf8c6; padding:8px; margin:5px; border-radius:10px;" : 
+                "align-self:flex-start; background:white; padding:8px; margin:5px; border-radius:10px; border:1px solid #ddd;";
+            chatBox.appendChild(div);
+        });
     });
 }
 
-// --- SENDING ---
-document.getElementById('send-btn').onclick = () => {
-    const input = document.getElementById('user-input');
-    if (input.value.trim() !== "") {
-        database.ref('chats/' + currentRoomId).push({
-            text: input.value,
-            sender: auth.currentUser.phoneNumber,
-            timestamp: Date.now()
-        });
-        input.value = "";
-    }
+document.getElementById('send-msg-btn').onclick = () => {
+    const text = document.getElementById('msg-input').value;
+    if (!text) return;
+
+    database.ref('chats/' + currentRoomId).push({
+        sender: auth.currentUser.phoneNumber,
+        text: text,
+        timestamp: Date.now()
+    });
+    document.getElementById('msg-input').value = "";
 };
