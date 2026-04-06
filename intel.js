@@ -71,3 +71,23 @@ function startChat() {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
 }
+// --- THE "REMEMBER ME" PROCESS ---
+// This runs the second the app opens on a phone
+firebase.auth().onAuthStateChanged((user) => {
+    const loginScreen = document.getElementById('login-screen');
+    const contactScreen = document.getElementById('contact-screen');
+
+    if (user) {
+        // Someone is already logged in!
+        console.log("User detected:", user.phoneNumber);
+        
+        // Skip login and go straight to the contacts
+        if (loginScreen) loginScreen.style.display = "none";
+        showContactList(); 
+    } else {
+        // No one is logged in, show the login box
+        if (loginScreen) loginScreen.style.display = "block";
+        if (contactScreen) contactScreen.style.display = "none";
+    }
+});
+  
