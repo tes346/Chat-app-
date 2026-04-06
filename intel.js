@@ -12,12 +12,14 @@ const firebaseConfig = {
     databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
 };
 
+
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 let currentRoomId = "";
 
-// 2. PAGE LOAD LOGIC
+// 2. APP INITIALIZATION
 window.onload = () => {
     const loginScreen = document.getElementById('login-screen');
     const contactScreen = document.getElementById('contact-screen');
@@ -26,6 +28,7 @@ window.onload = () => {
     auth.onAuthStateChanged((user) => {
         if (user) {
             loginScreen.style.display = "none";
+            // Verify if user has a profile name saved
             database.ref('users/' + user.uid).once('value', (snapshot) => {
                 if (snapshot.exists() && snapshot.val().displayName) {
                     showContactList();
@@ -39,25 +42,43 @@ window.onload = () => {
         }
     });
 
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
-};
-
-// 3. SEND MESSAGE LOGIC (The part that was failing)
-document.getElementById('send-msg-btn').onclick = () => {
-    const msgInput = document.getElementById('msg-input');
-    const text = msgInput.value.trim();
-    if (!text || !currentRoomId) return;
-
-    database.ref('chats/' + currentRoomId).push({
-        sender: auth.currentUser.phoneNumber,
-        text: text,
-        timestamp: Date.now()
-    }).then(() => {
-        msgInput.value = ""; // Clears the box
+    // Setup Invisible Recaptcha
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 
+        'size': 'invisible' 
     });
 };
 
-// 4. CONTACTS & LOGIN FUNCTIONS
+// 3. LOGIN & AUTH FUNCTIONS
+document.getElementById('send-otp-btn').onclick = () => {
+    const phone = document.getElementById('phone-number').value;
+    if (!phone) return alert("Enter your phone number!");
+
+    auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+        .then(confirmationResult => {
+            window.confirmationResult = confirmationResult;
+            document.getElementById('otp-section').style.display = "block";
+        }).catch(err => alert("Error: " + err.message));
+};
+
+document.getElementById('verify-otp-btn').onclick = () => {
+    const code = document.getElementById('otp-code').value;
+    window.confirmationResult.confirm(code).catch(() => alert("Invalid OTP Code"));
+};
+
+document.getElementById('save-profile-btn').onclick = () => {
+    const name = document.getElementById('display-name').value;
+    if (!name) return alert("Please enter a name");
+    
+    database.ref('users/' + auth.currentUser.uid).set({
+        displayName: name,
+        phoneNumber: auth.currentUser.phoneNumber
+    }).then(() => {
+        document.getElementById('profile-setup').style.display = "none";
+        showContactList();
+    });
+};
+
+// 4. CHAT & CONTACTS LOGIC
 function showContactList() {
     document.getElementById('contact-screen').style.display = "block";
     const contactButtons = document.getElementById('contact-buttons');
@@ -66,22 +87,27 @@ function showContactList() {
         contactButtons.innerHTML = "";
         snapshot.forEach((child) => {
             const friend = child.val();
+            // Don't show yourself in the list
             if (friend.phoneNumber !== auth.currentUser.phoneNumber) {
                 const btn = document.createElement('button');
-                btn.className = "contact-btn"; // Make sure this CSS exists or style manually
-                btn.innerHTML = `<b>${friend.displayName || friend.phoneNumber}</b>`;
-                btn.onclick = () => openPrivateChat(friend.phoneNumber);
+                btn.style = "background:white; color:#333; margin-bottom:10px; border:1px solid #ddd; text-align:left; display:flex; align-items:center;";
+                btn.innerHTML = `<div style="width:40px; height:40px; background:#075E54; border-radius:50%; margin-right:15px; color:white; display:flex; align-items:center; justify-content:center;">${(friend.displayName || '?').charAt(0)}</div> 
+                                 <div><b>${friend.displayName || friend.phoneNumber}</b><br><small style="color:gray;">Click to chat</small></div>`;
+                btn.onclick = () => openPrivateChat(friend.phoneNumber, friend.displayName);
                 contactButtons.appendChild(btn);
             }
         });
     });
 }
 
-function openPrivateChat(friendPhone) {
+function openPrivateChat(friendPhone, friendName) {
     const userPhone = auth.currentUser.phoneNumber;
     currentRoomId = [userPhone, friendPhone].sort().join('_');
+    
     document.getElementById('contact-screen').style.display = "none";
     document.getElementById('chat-container').style.display = "flex";
+    document.getElementById('chat-with-name').innerText = friendName || friendPhone;
+    
     loadMessages();
 }
 
@@ -96,29 +122,25 @@ function loadMessages() {
             div.className = msg.sender === auth.currentUser.phoneNumber ? "sent" : "received";
             chatBox.appendChild(div);
         });
+        chatBox.scrollTop = chatBox.scrollHeight;
     });
 }
 
-// LOGIN BUTTONS
-document.getElementById('send-otp-btn').onclick = () => {
-    const phone = document.getElementById('phone-number').value;
-    auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-        .then(res => { window.confirmationResult = res; document.getElementById('otp-section').style.display = "block"; });
-};
+document.getElementById('send-msg-btn').onclick = () => {
+    const msgInput = document.getElementById('msg-input');
+    const text = msgInput.value.trim();
+    if (!text || !currentRoomId) return;
 
-document.getElementById('verify-otp-btn').onclick = () => {
-    const code = document.getElementById('otp-code').value;
-    window.confirmationResult.confirm(code);
-};
-
-document.getElementById('save-profile-btn').onclick = () => {
-    const name = document.getElementById('display-name').value;
-    database.ref('users/' + auth.currentUser.uid).update({
-        displayName: name,
-        phoneNumber: auth.currentUser.phoneNumber
+    database.ref('chats/' + currentRoomId).push({
+        sender: auth.currentUser.phoneNumber,
+        text: text,
+        timestamp: Date.now()
     }).then(() => {
-        document.getElementById('profile-setup').style.display = "none";
-        showContactList();
+        msgInput.value = "";
     });
 };
-      
+
+document.getElementById('logout-btn').onclick = () => {
+    auth.signOut().then(() => location.reload());
+};
+  
