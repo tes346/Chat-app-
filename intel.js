@@ -1,72 +1,53 @@
-ort Firebase
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// 🔥 PASTE YOUR CONFIG HERE (replace this one)
+// Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
+  apiKey: "AIzaSyCkk8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
   authDomain: "chat-app-72173.firebaseapp.com",
+  databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com",
   projectId: "chat-app-72173",
   storageBucket: "chat-app-72173.firebasestorage.app",
   messagingSenderId: "350285511724",
   appId: "1:350285511724:web:84c0128616b2880313e589",
-  measurementId: "G-RHBBRTWLVY",
+  measurementId: "G-RHBBRTWLVY"
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Simple chat ID (we improve later)
-const chatId = "test_chat";
-
-// Send message
-async function sendMessage() {
-  const input = document.getElementById("messageInput");
-  const text = input.value;
-
-  if (!text) return;
-
-  await addDoc(collection(db, "chats", chatId, "messages"), {
-    text: text,
-    timestamp: new Date()
-  });
-
-  input.value = "";
-}
-
-// Make function global (important!)
-window.sendMessage = sendMessage;
-
-// Receive messages (real-time)
-const q = query(
-  collection(db, "chats", chatId, "messages"),
-  orderBy("timestamp")
-);
-
-onSnapshot(q, (snapshot) => {
-  const list = document.getElementById("messages");
-  list.innerHTML = "";
-
-  snapshot.forEach(doc => {
-    const li = document.createElement("li");
-    li.textContent = doc.data().text;
-    list.appendChild(li);
-  });
-});
-const sendBtn = document.getElementById('send-btn');
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const messagesRef = database.ref('messages');
 
 const sendBtn = document.getElementById('send-btn');
-const input = document.getElementById('user-input');
-const messages = document.getElementById('messages');
+const userInput = document.getElementById('user-input');
+const messagesDiv = document.getElementById('messages');
 
-sendBtn.onclick = () => {
-    if (input.value.trim() !== "") {
-        const msg = document.createElement('div');
-        msg.className = 'message sent';
-        msg.textContent = input.value;
-        messages.appendChild(msg);
-        input.value = "";
-        messages.scrollTop = messages.scrollHeight;
+// Sending message to Firebase
+sendBtn.addEventListener('click', () => {
+    const text = userInput.value;
+    if (text.trim() !== "") {
+        messagesRef.push({
+            text: text,
+            timestamp: Date.now(),
+            sender: "User1" 
+        });
+        userInput.value = "";
     }
-};const sendBtn = document.getElementById('send-btn');
+});
+
+// Send message on Enter key
+userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendBtn.click();
+    }
+});
+
+// Receiving messages from Firebase
+messagesRef.on('child_added', (snapshot) => {
+    const data = snapshot.val();
+    const msg = document.createElement('div');
+    
+    // Bubble styling
+    msg.className = data.sender === "User1" ? 'message sent' : 'message received';
+    msg.textContent = data.text;
+    
+    messagesDiv.appendChild(msg);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
