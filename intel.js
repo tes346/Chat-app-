@@ -161,3 +161,24 @@ document.getElementById('send-msg-btn').onclick = () => {
     });
     document.getElementById('msg-input').value = "";
 };
+document.getElementById('send-msg-btn').onclick = () => {
+    const msgInput = document.getElementById('msg-input');
+    const text = msgInput.value.trim();
+    
+    if (!text) return; // Don't send empty messages
+
+    if (!currentRoomId) {
+        return alert("Error: No active chat room found!");
+    }
+
+    database.ref('chats/' + currentRoomId).push({
+        sender: auth.currentUser.phoneNumber,
+        text: text,
+        timestamp: Date.now()
+    }).then(() => {
+        msgInput.value = ""; // Clear the box after sending
+    }).catch((error) => {
+        alert("Database Error: " + error.message);
+    });
+};
+
