@@ -21,18 +21,44 @@ window.onload = () => {
     const loginScreen = document.getElementById('login-screen');
     const contactScreen = document.getElementById('contact-screen');
     const chatContainer = document.getElementById('chat-container');
+    const profileSetup = document.getElementById('profile-setup'); // Line 24
 
-    // --- THE "REMEMBER ME" PROCESS ---
     auth.onAuthStateChanged((user) => {
         if (user) {
             loginScreen.style.display = "none";
-            showContactList(); 
+            // Check if user has a name in database
+            database.ref('users/' + user.uid).once('value', (snapshot) => {
+                if (snapshot.exists() && snapshot.val().displayName) {
+                    profileSetup.style.display = "none";
+                    showContactList();
+                } else {
+                    profileSetup.style.display = "block";
+                    contactScreen.style.display = "none";
+                }
+            });
+        };
         } else {
             loginScreen.style.display = "block";
             contactScreen.style.display = "none";
-            chatContainer.style.display = "none";
+            profileSetup.style.display = "none";
         }
     });
+};
+
+// --- CODE 2: SAVE PROFILE FUNCTION ---
+document.getElementById('save-profile-btn').onclick = () => {
+    const name = document.getElementById('display-name').value;
+    if (!name) return alert("Please enter a username!");
+
+    database.ref('users/' + auth.currentUser.uid).update({
+        displayName: name,
+        phoneNumber: auth.currentUser.phoneNumber,
+        photoURL: "" 
+    }).then(() => {
+        document.getElementById('profile-setup').style.display = "none";
+        showContactList();
+    });
+};
 
     // Setup Recaptcha
     window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
@@ -71,19 +97,34 @@ function showContactList() {
     const contactButtons = document.getElementById('contact-buttons');
     contactButtons.innerHTML = "Loading users..."; 
 
-    database.ref('users').on('value', (snapshot) => {
-        contactButtons.innerHTML = ""; 
-        snapshot.forEach((childSnapshot) => {
-            const friend = childSnapshot.val();
-            if (friend.phoneNumber !== auth.currentUser.phoneNumber) {
-                const btn = document.createElement('button');
-                btn.style = "width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; background:white; cursor:pointer;";
-                btn.innerHTML = "👤 " + friend.phoneNumber;
-                btn.onclick = () => openPrivateChat(friend.phoneNumber);
-                contactButtons.appendChild(btn);
-            }
+            database.ref('users').on('value', (snapshot) => {
+            contactButtons.innerHTML = ""; 
+            snapshot.forEach((childSnapshot) => {
+                const friend = childSnapshot.val();
+                if (friend.phoneNumber !== auth.currentUser.phoneNumber) {
+                    const btn = document.createElement('button');
+                    btn.style = "width:100%; padding:12px; margin-bottom:10px; border-radius:12px; border:1px solid #ddd; background:white; display:flex; align-items:center; cursor:pointer;";
+                    
+                    // Logic: Use Name if it exists, otherwise use phone number
+                    const nameToDisplay = friend.displayName ? friend.displayName : friend.phoneNumber;
+                    const firstLetter = nameToDisplay.charAt(0).toUpperCase();
+
+                    btn.innerHTML = `
+                        <div style="width:45px; height:45px; background:#075E54; color:white; border-radius:50%; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; overflow:hidden;">
+                            ${friend.photoURL ? `<img src="${friend.photoURL}" style="width:100%; height:100%; object-fit:cover;">` : firstLetter}
+                        </div>
+                        <div style="text-align:left;">
+                            <div style="font-weight:bold; color:#333;">${nameToDisplay}</div>
+                            <div style="font-size:12px; color:gray;">${friend.phoneNumber}</div>
+                        </div>
+                    `;
+                    
+                    btn.onclick = () => openPrivateChat(friend.phoneNumber);
+                    contactButtons.appendChild(btn);
+                }
+            });
         });
-    });
+                  
 
     document.getElementById('logout-btn').onclick = () => {
         auth.signOut().then(() => location.reload());
