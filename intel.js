@@ -1,14 +1,11 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCkK8FYqYgwcZTgbhEIG-3q0D5BkBL_Qj4",
-  authDomain: "chat-app-72173.firebaseapp.com",
-  databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com",
-  projectId: "chat-app-72173",
-  storageBucket: "chat-app-72173.firebasestorage.app",
-  messagingSenderId: "350285511724",
-  appId: "1:350285511724:web:84c0128616b2880313e589",
-  measurementId: "G-RHBBRTWLVY",
-  
+    apiKey: "AIzaSyCkk8FYqYgwcZTgbhEIG-3q0D5BkbL_Qj4",
+    authDomain: "chat-app-72173.firebaseapp.com",
+    projectId: "chat-app-72173",
+    storageBucket: "chat-app-72173.firebasestorage.app",
+    messagingSenderId: "350285511724",
+    appId: "1:350285511724:web:a61643a04b5d2d2113e589",
+    measurementId: "G-BTN960VVZ1",
     databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
 };
 
@@ -18,7 +15,6 @@ const database = firebase.database();
 let currentRoomId = "";
 
 window.onload = () => {
-    // Correct way to initialize Recaptcha in JS
     window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 
         'size': 'invisible' 
     });
@@ -30,25 +26,23 @@ window.onload = () => {
         }
     });
 };
-                                                                   
-};
-};
 
 document.getElementById('send-otp-btn').onclick = () => {
-    const phone = document.getElementById('phone-number').value;
-    auth.signInWithPhoneNumber(phone, window.recaptchaVerifier).then(res => {
-        window.confirmationResult = res;
-        document.getElementById('otp-section').style.display = "block";
-    }).catch(err => alert(err.message));
+    // FIX: Added .value to get the actual number
+    const phone = document.getElementById('phone-number').value; 
+    
+    if(!phone) return alert("Please enter a phone number");
+
+    auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+        .then(res => {
+            window.confirmationResult = res;
+            document.getElementById('otp-section').style.display = "block";
+        }).catch(err => alert(err.message));
 };
 
 document.getElementById('verify-otp-btn').onclick = () => {
     const code = document.getElementById('otp-code').value;
-    window.confirmationResult.confirm(code);
-};
-
-document.getElementById('logout-btn').onclick = () => {
-    auth.signOut().then(() => location.reload());
+    window.confirmationResult.confirm(code).catch(err => alert(err.message));
 };
 
 function showContacts() {
@@ -59,13 +53,13 @@ function showContacts() {
         snap.forEach(child => {
             const u = child.val();
             if (u.phoneNumber !== auth.currentUser.phoneNumber) {
-                const b = document.createElement('div');
-                b.className = "contact-item";
-                b.innerHTML = `<span><b>${u.displayName || 'User'}</b><br>${u.phoneNumber}</span> <span>➤</span>`;
+                const b = document.createElement('button');
+                b.style = "width:100%; padding:10px; margin-bottom:5px;";
+                b.innerText = u.displayName || u.phoneNumber;
                 b.onclick = () => {
                     currentRoomId = [auth.currentUser.phoneNumber, u.phoneNumber].sort().join('_');
                     document.getElementById('contact-screen').style.display = "none";
-                    document.getElementById('chat-container').style.display = "flex";
+                    document.getElementById('chat-container').style.display = "block";
                     loadMsgs();
                 };
                 div.appendChild(b);
@@ -82,28 +76,19 @@ function loadMsgs() {
             const m = c.val();
             const d = document.createElement('div');
             d.innerText = m.text;
-            d.className = m.sender === auth.currentUser.phoneNumber ? "sent" : "received";
+            d.style = m.sender === auth.currentUser.phoneNumber ? "text-align:right; color:green;" : "text-align:left; color:black;";
             box.appendChild(d);
         });
-        box.scrollTop = box.scrollHeight;
     });
 }
 
 document.getElementById('send-msg-btn').onclick = () => {
     const inp = document.getElementById('msg-input');
-    if (!inp.value.trim()) return;
+    if (!inp.value || !currentRoomId) return;
     database.ref('chats/' + currentRoomId).push({
         sender: auth.currentUser.phoneNumber,
-        text: inp.value,
-        timestamp: Date.now()
+        text: inp.value
     });
     inp.value = "";
 };
- const sendBtn = document.querySelector('button');
-sendBtn.addEventListener('click', () => {
-    const phoneNumber = document.querySelector('input').value;
-    console.log("Attempting to send code to:", phoneNumber);
-    // This is where your API call logic goes
-});
-            
-
+  
