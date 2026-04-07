@@ -15,7 +15,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 let currentRoomId = "";
-
 // 1. LOGOUT LOGIC (Moved to top so it always works)
 document.getElementById('logout-btn').onclick = () => {
     auth.signOut().then(() => {
