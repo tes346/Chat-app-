@@ -7,8 +7,8 @@ const firebaseConfig = {
   storageBucket: "chat-app-72173.firebasestorage.app",
   messagingSenderId: "350285511724",
   appId: "1:350285511724:web:84c0128616b2880313e589",
-  measurementId: "G-RHBBRTWLVY"
-};
+  measurementId: "G-RHBBRTWLVY",
+  
     databaseURL: "https://chat-app-72173-default-rtdb.firebaseio.com"
 };
 
@@ -18,17 +18,20 @@ const database = firebase.database();
 let currentRoomId = "";
 
 window.onload = () => {
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
+    // Correct way to initialize Recaptcha in JS
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 
+        'size': 'invisible' 
+    });
     
     auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('login-screen').style.display = "none";
             showContacts();
-        } else {
-            document.getElementById('login-screen').style.display = "block";
-            document.getElementById('contact-screen').style.display = "none";
         }
     });
+};
+                                                                   
+};
 };
 
 document.getElementById('send-otp-btn').onclick = () => {
