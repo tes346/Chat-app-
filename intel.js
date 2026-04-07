@@ -28,10 +28,10 @@ window.onload = () => {
             showContacts();
         }
     });
-};
+};// ... (Your Firebase Config at the top)
 
 document.getElementById('send-otp-btn').onclick = () => {
-    // FIX: Added .value to get the actual number
+    // FIX 1: Use .value to get the numbers
     const phone = document.getElementById('phone-number').value; 
     
     if(!phone) return alert("Please enter a phone number");
@@ -39,9 +39,15 @@ document.getElementById('send-otp-btn').onclick = () => {
     auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
         .then(res => {
             window.confirmationResult = res;
-            document.getElementById('otp-section').style.display = "block";
-        }).catch(err => alert(err.message));
+            // FIX 2: This line finally makes the OTP box appear
+            document.getElementById('otp-section').style.display = "block"; 
+        }).catch(err => {
+            alert("Error: " + err.message);
+        });
 };
+
+
+
 
 document.getElementById('verify-otp-btn').onclick = () => {
     const code = document.getElementById('otp-code').value;
