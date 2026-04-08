@@ -45,7 +45,6 @@ window.login = function() {
       const user = userCredential.user;
       if (!user.emailVerified) {
         auth.signOut();
-        document.getElementById("message").innerText = "Email not verified! Please check inbox.";
       } else {
         document.getElementById("message").innerText = "Login successful!";
         showProfileDiv();
