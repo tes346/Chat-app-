@@ -10,19 +10,17 @@ const firebaseConfig = {
   appId: "1:350285511724:web:84c0128616b2880313e589",
   measurementId: "G-RHBBRTWLVY",
 };
-firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// Global variable for current chat
 let chatPartnerUid = null;
 
-// Sign Up
+// ===== Sign Up =====
 window.signUp = function() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const remember = document.getElementById("rememberMe").checked;
-
   const persistence = remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
 
   auth.setPersistence(persistence)
@@ -34,12 +32,11 @@ window.signUp = function() {
     .catch(err => document.getElementById("message").innerText = err.message);
 };
 
-// Login
+// ===== Login =====
 window.login = function() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const remember = document.getElementById("rememberMe").checked;
-
   const persistence = remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
 
   auth.setPersistence(persistence)
@@ -51,7 +48,7 @@ window.login = function() {
     .catch(err => document.getElementById("message").innerText = err.message);
 };
 
-// Logout
+// ===== Logout =====
 window.logout = function() {
   auth.signOut().then(() => {
     document.getElementById("message").innerText = "Logged out!";
@@ -63,7 +60,7 @@ window.logout = function() {
   });
 };
 
-// Set Profile
+// ===== Set Profile =====
 window.setProfile = function() {
   const user = auth.currentUser;
   const displayName = document.getElementById("displayName").value;
@@ -76,7 +73,7 @@ window.setProfile = function() {
     });
 };
 
-// Show Profile
+// ===== Show Profile =====
 function showProfileDiv() {
   document.getElementById("authDiv").style.display = "none";
   document.getElementById("profileDiv").style.display = "block";
@@ -90,7 +87,7 @@ function showProfileDiv() {
   });
 }
 
-// Show all users
+// ===== Show Users =====
 function showUsers() {
   document.getElementById("usersDiv").style.display = "block";
   const listDiv = document.getElementById("userList");
@@ -104,14 +101,17 @@ function showUsers() {
       if (uid !== auth.currentUser.uid) {
         const btn = document.createElement("button");
         btn.innerText = user.displayName || user.email;
-        btn.onclick = () => startChat(uid, user.displayName || user.email);
+
+        // Correct click listener with closure
+        btn.addEventListener("click", () => startChat(uid, user.displayName || user.email));
+
         listDiv.appendChild(btn);
       }
     });
   });
 }
 
-// Start chat with a user
+// ===== Start Chat =====
 function startChat(uid, displayName) {
   chatPartnerUid = uid;
   document.getElementById("chatWith").innerText = displayName;
@@ -119,13 +119,18 @@ function startChat(uid, displayName) {
   document.getElementById("messages").innerHTML = "";
 
   const userUid = auth.currentUser.uid;
+
+  // Remove old listeners if switching chats
+  db.ref("chats").child(userUid).child(chatPartnerUid).off();
+
+  // Listen for new messages
   db.ref("chats").child(userUid).child(chatPartnerUid).on("child_added", snapshot => {
     const msg = snapshot.val();
     displayMessage(msg);
   });
 }
 
-// Send a message
+// ===== Send Message =====
 function sendMessage() {
   const msgInput = document.getElementById("messageInput");
   const text = msgInput.value.trim();
@@ -142,23 +147,22 @@ function sendMessage() {
   msgInput.value = "";
 }
 
-// Display message in chat box
+// ===== Display Message =====
 function displayMessage(msg) {
   const div = document.createElement("div");
-  const isMe = msg.sender === auth.currentUser.uid;
-  div.style.textAlign = isMe ? "right" : "left";
+  div.style.textAlign = msg.sender === auth.currentUser.uid ? "right" : "left";
   div.innerText = msg.text;
   document.getElementById("messages").appendChild(div);
   document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
 }
 
-// Close chat
+// ===== Close Chat =====
 function closeChat() {
   document.getElementById("chatDiv").style.display = "none";
   chatPartnerUid = null;
 }
 
-// Stay logged in
+// ===== Stay Logged In =====
 auth.onAuthStateChanged(user => {
   if (user) showProfileDiv();
   else {
@@ -168,4 +172,4 @@ auth.onAuthStateChanged(user => {
     document.getElementById("chatDiv").style.display = "none";
     chatPartnerUid = null;
   }
-});
+});  
