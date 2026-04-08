@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TEwhatspp App</title>
+  <title>Firebase Chat App</title>
   <meta charset="UTF-8">
   <style>
     body { font-family: Arial; }
@@ -11,8 +11,9 @@
   </style>
 </head>
 <body>
-  <h2>TEwhatsapp Chat App</h2>
+  <h2>Firebase Chat App</h2>
 
+  <!-- Authentication -->
   <div id="authDiv">
     <input type="email" id="email" placeholder="Enter email"><br>
     <input type="password" id="password" placeholder="Enter password"><br>
@@ -21,6 +22,7 @@
     <button onclick="login()">Login</button>
   </div>
 
+  <!-- Profile Setup -->
   <div id="profileDiv" style="display:none;">
     <h3>Welcome, <span id="userName"></span></h3>
     <input type="text" id="displayName" placeholder="Set display name"><br>
@@ -28,6 +30,7 @@
     <button onclick="logout()">Logout</button>
   </div>
 
+  <!-- Users List -->
   <div id="usersDiv" style="display:none;">
     <h3>All Users</h3>
     <div id="userList"></div>
@@ -35,12 +38,12 @@
 
   <p id="message"></p>
 
-  <!-- Firebase -->
+  <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <!-- App JS -->
+  <!-- Your App JS -->
   <script src="intel.js"></script>
 </body>
-</html>
+  </html>
