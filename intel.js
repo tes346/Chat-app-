@@ -59,6 +59,7 @@ window.onload = () => {
 
 // LOGIN - SEND OTP
 document.getElementById('send-otp-btn').onclick = () => {
+    alert ("CLICK WORKING");
 
     console.log("✅ Button clicked"); // STEP 4
 
