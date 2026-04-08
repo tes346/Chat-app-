@@ -4,59 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TEwhatsapp App</title>
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="app-container">
-        <h2 class="app-title">TEwhatsapp</h2>
-        <p id="message"></p>
-
         <div id="authScreen" class="screen active">
-            <div class="card">
-                <h3>Welcome</h3>
+            <h2>TEwhatsapp</h2>
+            <div class="auth-box">
                 <input type="email" id="email" placeholder="Enter email">
                 <input type="password" id="password" placeholder="Enter password">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="rememberMe"> 
-                    <label for="rememberMe">Remember Me</label>
-                </div>
-                <div class="button-group">
-                    <button class="btn-primary" onclick="login()">Login</button>
-                    <button class="btn-secondary" onclick="signUp()">Sign Up</button>
+                <label><input type="checkbox" id="rememberMe"> Remember Me</label>
+                <div class="btn-row">
+                    <button onclick="login()">Login</button>
+                    <button onclick="signUp()">Sign Up</button>
                 </div>
             </div>
+            <p id="message"></p>
         </div>
 
         <div id="profileScreen" class="screen">
-            <div class="card">
-                <h3>Setup Profile</h3>
-                <input type="text" id="displayName" placeholder="Enter your name">
-                <button class="btn-primary" onclick="saveProfile()">Save & Continue</button>
-            </div>
+            <h2>Setup Profile</h2>
+            <input type="text" id="displayName" placeholder="Enter your name">
+            <button class="btn-primary" onclick="saveProfile()">Save & Continue</button>
         </div>
 
         <div id="usersScreen" class="screen">
-            <div class="card">
-                <div class="header-flex">
-                    <h3>Contacts</h3>
-                    <button class="btn-small" onclick="logout()">Logout</button>
-                </div>
-                <div id="userList"></div>
+            <div class="header-bar">
+                <h3>Contacts</h3>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
+            <div id="userList"></div>
         </div>
 
         <div id="chatScreen" class="screen">
-            <div class="chat-card">
-                <div class="chat-header">
-                    <button onclick="backToUsers()">←</button>
-                    <span id="chatWith"></span>
-                </div>
-                <div id="messages"></div>
-                <div id="input-area">
-                    <input type="text" id="messageInput" placeholder="Type a message...">
-                    <button onclick="sendMessage()">Send</button>
-                </div>
+            <div class="chat-header">
+                <button onclick="backToUsers()">← Back</button>
+                <span id="chatWith"></span>
+            </div>
+            <div id="messages"></div>
+            <div id="input-area">
+                <input type="text" id="messageInput" placeholder="Type a message...">
+                <button onclick="sendMessage()">Send</button>
             </div>
         </div>
     </div>
