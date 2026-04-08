@@ -1,94 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-    <style>
-        body { font-family: sans-serif; margin: 0; background: #ece5dd; }
-        .screen { display: none; padding: 20px; text-align: center; height: 100vh; }
-        input { width: 85%; padding: 12px; margin: 10px; border-radius: 8px; border: 1px solid #ccc; }
-        button { width: 90%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        .contact-item { 
-            background: white; border: 1px solid #ddd; padding: 15px; 
-            margin-bottom: 10px; border-radius: 10px; display: flex; 
-            align-items: center; justify-content: space-between; width: 100%;
-        }
-
-        #chat-box { 
-            flex: 1; overflow-y: auto; background: #e5ddd5; 
-            padding: 15px; display: flex; flex-direction: column; 
-        }
-
-        .sent { 
-            align-self: flex-end; background: #dcf8c6; 
-            padding: 10px; margin: 5px; border-radius: 10px; max-width: 70%; 
-        }
-
-        .received { 
-            align-self: flex-start; background: white; 
-            padding: 10px; margin: 5px; border-radius: 10px; max-width: 70%; 
-        }
-    </style>
+  <title>Firebase Chat App</title>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial; }
+    input, button { padding: 5px; margin: 5px 0; }
+    #userList button { margin: 5px 0; display: block; }
+    #profileDiv, #usersDiv { margin-top: 20px; }
+  </style>
 </head>
-
 <body>
+  <h2>Firebase Chat App</h2>
 
-<!-- LOGIN SCREEN -->
-<div id="login-screen" class="screen" style="display:block;">
-    <h2>WhatsApp Chat Login</h2>
+  <!-- Auth Section -->
+  <div id="authDiv">
+    <input type="email" id="email" placeholder="Enter email"><br>
+    <input type="password" id="password" placeholder="Enter password"><br>
+    <label><input type="checkbox" id="rememberMe"> Remember Me</label><br>
+    <button onclick="signUp()">Sign Up</button>
+    <button onclick="login()">Login</button>
+  </div>
 
-    <input type="text" id="phone-number" placeholder="+2547XXXXXXXX">
+  <!-- Profile Setup -->
+  <div id="profileDiv" style="display:none;">
+    <h3>Welcome, <span id="userName"></span></h3>
+    <input type="text" id="displayName" placeholder="Set display name"><br>
+    <button onclick="setProfile()">Save Profile</button>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-    <!-- Recaptcha -->
-    <div id="recaptcha-container"></div>
+  <!-- Users List -->
+  <div id="usersDiv" style="display:none;">
+    <h3>All Users</h3>
+    <div id="userList"></div>
+  </div>
 
-    <button id="send-otp-btn">Send SMS Code</button>
+  <p id="message"></p>
 
-    <!-- ✅ OTP SECTION (ADDED) -->
-    <div id="otp-section" style="display:none;">
-        <input type="text" id="otp-code" placeholder="Enter OTP code">
-        <button id="verify-otp-btn">Verify Code</button>
-    </div>
-</div>
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-
-<!-- CONTACT SCREEN -->
-<div id="contact-screen" class="screen">
-    <div style="display:flex; justify-content: space-between; align-items: center;">
-        <h3>Contacts</h3>
-        <button id="logout-btn" style="width: auto; padding: 5px 10px; background: #ff4444;">Logout</button>
-    </div>
-
-    <div id="contact-buttons"></div>
-</div>
-
-
-<!-- CHAT SCREEN -->
-<div id="chat-container" class="screen" style="flex-direction: column; padding: 0;">
-    
-    <div style="background: #075E54; color: white; padding: 15px; text-align: left;">
-        <span onclick="location.reload()" style="cursor:pointer;">← Back</span>
-    </div>
-
-    <div id="chat-box"></div>
-
-    <div style="padding: 10px; background: white; display: flex;">
-        <input type="text" id="msg-input" placeholder="Type a message..." style="flex:1;">
-        <button id="send-msg-btn" style="width: 50px; margin: 0 5px;">➤</button>
-    </div>
-
-</div>
-
-<!-- Your JS file -->
-<script src="intel.js"></script>
-
+  <!-- App JS -->
+  <script src="app.js"></script>
 </body>
-</html>
+      </html>
