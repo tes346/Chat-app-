@@ -10,47 +10,45 @@ const firebaseConfig = {
   appId: "1:350285511724:web:84c0128616b2880313e589",
   measurementId: "G-RHBBRTWLVY",
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// 🔹 Attach functions to window so buttons work
+// Sign Up
 window.signUp = function() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const remember = document.getElementById("rememberMe").checked;
+
   const persistence = remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
 
   auth.setPersistence(persistence)
     .then(() => auth.createUserWithEmailAndPassword(email, password))
     .then(userCredential => {
-      const user = userCredential.user;
-      });
+      document.getElementById("message").innerText = "Account created successfully!";
+      showProfileDiv();
     })
     .catch(err => document.getElementById("message").innerText = err.message);
 };
 
+// Login
 window.login = function() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const remember = document.getElementById("rememberMe").checked;
+
   const persistence = remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
 
   auth.setPersistence(persistence)
     .then(() => auth.signInWithEmailAndPassword(email, password))
-    .then(userCredential => {
-      const user = userCredential.user;
-      if (!user.emailVerified) {
-        auth.signOut();
-      } else {
-        document.getElementById("message").innerText = "Login successful!";
-        showProfileDiv();
-      }
+    .then(() => {
+      document.getElementById("message").innerText = "Login successful!";
+      showProfileDiv();
     })
     .catch(err => document.getElementById("message").innerText = err.message);
 };
 
+// Logout
 window.logout = function() {
   auth.signOut().then(() => {
     document.getElementById("message").innerText = "Logged out!";
@@ -60,10 +58,11 @@ window.logout = function() {
   });
 };
 
+// Set Profile
 window.setProfile = function() {
   const user = auth.currentUser;
   const displayName = document.getElementById("displayName").value;
-  if (!displayName) return alert("Enter display name!");
+  if (!displayName) return alert("Enter a display name!");
 
   db.ref("users/" + user.uid).set({ email: user.email, displayName })
     .then(() => {
@@ -72,10 +71,11 @@ window.setProfile = function() {
     });
 };
 
-// 🔹 Helper functions
+// Show Profile
 function showProfileDiv() {
   document.getElementById("authDiv").style.display = "none";
   document.getElementById("profileDiv").style.display = "block";
+
   const user = auth.currentUser;
   document.getElementById("userName").innerText = user.email;
 
@@ -85,10 +85,12 @@ function showProfileDiv() {
   });
 }
 
+// Show all users
 function showUsers() {
   document.getElementById("usersDiv").style.display = "block";
   const listDiv = document.getElementById("userList");
   listDiv.innerHTML = "";
+
   db.ref("users").on("value", snapshot => {
     listDiv.innerHTML = "";
     snapshot.forEach(child => {
@@ -104,13 +106,13 @@ function showUsers() {
   });
 }
 
-// Stay logged in & email verification
+// Stay logged in
 auth.onAuthStateChanged(user => {
-  if (user && user.emailVerified) showProfileDiv();
-  else if (user && !user.emailVerified) auth.signOut();
+  if (user) showProfileDiv();
   else {
     document.getElementById("authDiv").style.display = "block";
     document.getElementById("profileDiv").style.display = "none";
     document.getElementById("usersDiv").style.display = "none";
   }
 });
+
