@@ -1,17 +1,18 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-  <title></title>TEwhatsapp App</title>
+  <title>Firebase Chat App</title>
   <meta charset="UTF-8">
   <style>
     body { font-family: Arial; }
     input, button { padding: 5px; margin: 5px 0; }
-    #userList button { margin: 5px 0; display: block; }
-    #profileDiv, #usersDiv { margin-top: 20px; }
+    #userList button { margin: 5px 0; display: block; width: 200px; text-align: left; }
+    #profileDiv, #usersDiv, #chatDiv { margin-top: 20px; }
+    #messages { border:1px solid #ccc; height:200px; overflow-y:scroll; padding:5px; }
   </style>
 </head>
 <body>
-  <h2>TEwhatsapp App</h2>
+  <h2>Firebase Chat App</h2>
 
   <!-- Authentication -->
   <div id="authDiv">
@@ -36,14 +37,23 @@ DOCTYPE html>
     <div id="userList"></div>
   </div>
 
+  <!-- Chat Area -->
+  <div id="chatDiv" style="display:none; margin-top:20px;">
+    <h3>Chat with <span id="chatWith"></span></h3>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="closeChat()">Close Chat</button>
+  </div>
+
   <p id="message"></p>
 
-  <!-- Firebase Scripts -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <!-- Your App JS -->
+  <!-- App JS -->
   <script src="intel.js"></script>
 </body>
-      </html>
+  </html>
