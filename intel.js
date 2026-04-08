@@ -31,11 +31,18 @@ document.getElementById('logout-btn').onclick = () => {
 // APP START
 window.onload = () => {
 
-    // ✅ FIXED recaptcha
     window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
         'recaptcha-container',
-        { size: 'invisible' }
+        {
+            size: 'normal', // 👈 change from invisible to normal (for testing)
+            callback: (response) => {
+                console.log("Recaptcha solved");
+            }
+        }
     );
+
+    // 👇 IMPORTANT: render it
+    window.recaptchaVerifier.render();
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -52,17 +59,24 @@ window.onload = () => {
 
 // LOGIN - SEND OTP
 document.getElementById('send-otp-btn').onclick = () => {
+
+    console.log("✅ Button clicked"); // STEP 4
+
     const phone = document.getElementById('phone-number').value;
 
     if (!phone) return alert("Enter phone number!");
 
     auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
     .then(res => {
+        console.log("✅ OTP sent"); // STEP 4
         window.confirmationResult = res;
         alert("OTP sent!");
         document.getElementById('otp-section').style.display = "block";
     })
-    .catch(err => alert("Error: " + err.message));
+    .catch(err => {
+        console.error("❌ ERROR:", err); // STEP 4
+        alert("Error: " + err.message);
+    });
 };
 
 // VERIFY OTP
