@@ -10,11 +10,31 @@ const firebaseConfig = {
   appId: "1:350285511724:web:84c0128616b2880313e589",
   measurementId: "G-RHBBRTWLVY",
 };
-  firebase.initializeApp(firebaseConfig);
+
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
 let chatPartnerUid = null;
+
+// ===== 2a. Screen Navigation Functions =====
+function showProfileScreen() {
+  document.getElementById("profileScreen").style.display = "block";
+  document.getElementById("usersScreen").style.display = "none";
+  document.getElementById("chatScreen").style.display = "none";
+}
+
+function showUsersScreen() {
+  document.getElementById("profileScreen").style.display = "none";
+  document.getElementById("usersScreen").style.display = "block";
+  document.getElementById("chatScreen").style.display = "none";
+}
+
+function showChatScreen() {
+  document.getElementById("profileScreen").style.display = "none";
+  document.getElementById("usersScreen").style.display = "none";
+  document.getElementById("chatScreen").style.display = "block";
+}
 
 // ===== Sign Up =====
 window.signUp = function() {
@@ -27,7 +47,7 @@ window.signUp = function() {
     .then(() => auth.createUserWithEmailAndPassword(email, password))
     .then(() => {
       document.getElementById("message").innerText = "Account created successfully!";
-      showProfileDiv();
+      showProfileScreen();
     })
     .catch(err => document.getElementById("message").innerText = err.message);
 };
@@ -43,7 +63,7 @@ window.login = function() {
     .then(() => auth.signInWithEmailAndPassword(email, password))
     .then(() => {
       document.getElementById("message").innerText = "Login successful!";
-      showProfileDiv();
+      showProfileScreen();
     })
     .catch(err => document.getElementById("message").innerText = err.message);
 };
@@ -52,44 +72,26 @@ window.login = function() {
 window.logout = function() {
   auth.signOut().then(() => {
     document.getElementById("message").innerText = "Logged out!";
-    document.getElementById("authDiv").style.display = "block";
-    document.getElementById("profileDiv").style.display = "none";
-    document.getElementById("usersDiv").style.display = "none";
-    document.getElementById("chatDiv").style.display = "none";
+    showProfileScreen();
     chatPartnerUid = null;
   });
 };
 
-// ===== Set Profile =====
-window.setProfile = function() {
+// ===== 2b. Save Profile =====
+function saveProfile() {
   const user = auth.currentUser;
   const displayName = document.getElementById("displayName").value;
   if (!displayName) return alert("Enter a display name!");
 
   db.ref("users/" + user.uid).set({ email: user.email, displayName })
     .then(() => {
-      document.getElementById("message").innerText = "Profile saved!";
-      showUsers();
+      showUsersScreen(); // Navigate to Users List after saving profile
+      showUsers(); // Load users
     });
-};
-
-// ===== Show Profile =====
-function showProfileDiv() {
-  document.getElementById("authDiv").style.display = "none";
-  document.getElementById("profileDiv").style.display = "block";
-
-  const user = auth.currentUser;
-  document.getElementById("userName").innerText = user.email;
-
-  db.ref("users/" + user.uid).get().then(snap => {
-    if (snap.exists()) document.getElementById("displayName").value = snap.val().displayName;
-    showUsers();
-  });
 }
 
 // ===== Show Users =====
 function showUsers() {
-  document.getElementById("usersDiv").style.display = "block";
   const listDiv = document.getElementById("userList");
   listDiv.innerHTML = "";
 
@@ -102,7 +104,7 @@ function showUsers() {
         const btn = document.createElement("button");
         btn.innerText = user.displayName || user.email;
 
-        // Correct click listener with closure
+        // ===== 2c. Correct Click Listener =====
         btn.addEventListener("click", () => startChat(uid, user.displayName || user.email));
 
         listDiv.appendChild(btn);
@@ -111,22 +113,21 @@ function showUsers() {
   });
 }
 
-// ===== Start Chat =====
+// ===== 2d. Start Chat =====
 function startChat(uid, displayName) {
   chatPartnerUid = uid;
   document.getElementById("chatWith").innerText = displayName;
-  document.getElementById("chatDiv").style.display = "block";
   document.getElementById("messages").innerHTML = "";
+  showChatScreen();
 
   const userUid = auth.currentUser.uid;
 
   // Remove old listeners if switching chats
   db.ref("chats").child(userUid).child(chatPartnerUid).off();
 
-  // Listen for new messages
+  // Listen for messages
   db.ref("chats").child(userUid).child(chatPartnerUid).on("child_added", snapshot => {
-    const msg = snapshot.val();
-    displayMessage(msg);
+    displayMessage(snapshot.val());
   });
 }
 
@@ -156,20 +157,24 @@ function displayMessage(msg) {
   document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
 }
 
-// ===== Close Chat =====
-function closeChat() {
-  document.getElementById("chatDiv").style.display = "none";
+// ===== 2e. Back to Users from Chat =====
+function backToUsers() {
   chatPartnerUid = null;
+  showUsersScreen();
 }
 
-// ===== Stay Logged In =====
+// ===== Auth State Changed =====
 auth.onAuthStateChanged(user => {
-  if (user) showProfileDiv();
-  else {
-    document.getElementById("authDiv").style.display = "block";
-    document.getElementById("profileDiv").style.display = "none";
-    document.getElementById("usersDiv").style.display = "none";
-    document.getElementById("chatDiv").style.display = "none";
-    chatPartnerUid = null;
+  if (user) {
+    db.ref("users/" + user.uid).get().then(snap => {
+      if (snap.exists() && snap.val().displayName) {
+        showUsersScreen();
+        showUsers();
+      } else {
+        showProfileScreen();
+      }
+    });
+  } else {
+    showProfileScreen();
   }
-});  
+});
