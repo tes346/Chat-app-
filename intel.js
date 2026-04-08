@@ -14,6 +14,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
+// Global variable for current chat
+let chatPartnerUid = null;
+
 // Sign Up
 window.signUp = function() {
   const email = document.getElementById("email").value;
@@ -24,7 +27,7 @@ window.signUp = function() {
 
   auth.setPersistence(persistence)
     .then(() => auth.createUserWithEmailAndPassword(email, password))
-    .then(userCredential => {
+    .then(() => {
       document.getElementById("message").innerText = "Account created successfully!";
       showProfileDiv();
     })
@@ -55,6 +58,8 @@ window.logout = function() {
     document.getElementById("authDiv").style.display = "block";
     document.getElementById("profileDiv").style.display = "none";
     document.getElementById("usersDiv").style.display = "none";
+    document.getElementById("chatDiv").style.display = "none";
+    chatPartnerUid = null;
   });
 };
 
@@ -99,11 +104,58 @@ function showUsers() {
       if (uid !== auth.currentUser.uid) {
         const btn = document.createElement("button");
         btn.innerText = user.displayName || user.email;
-        btn.onclick = () => alert("Start chat with: " + (user.displayName || user.email));
+        btn.onclick = () => startChat(uid, user.displayName || user.email);
         listDiv.appendChild(btn);
       }
     });
   });
+}
+
+// Start chat with a user
+function startChat(uid, displayName) {
+  chatPartnerUid = uid;
+  document.getElementById("chatWith").innerText = displayName;
+  document.getElementById("chatDiv").style.display = "block";
+  document.getElementById("messages").innerHTML = "";
+
+  const userUid = auth.currentUser.uid;
+  db.ref("chats").child(userUid).child(chatPartnerUid).on("child_added", snapshot => {
+    const msg = snapshot.val();
+    displayMessage(msg);
+  });
+}
+
+// Send a message
+function sendMessage() {
+  const msgInput = document.getElementById("messageInput");
+  const text = msgInput.value.trim();
+  if (!text || !chatPartnerUid) return;
+
+  const userUid = auth.currentUser.uid;
+  const timestamp = Date.now();
+  const messageData = { sender: userUid, text, timestamp };
+
+  // Save message for both sender and receiver
+  db.ref("chats").child(userUid).child(chatPartnerUid).push(messageData);
+  db.ref("chats").child(chatPartnerUid).child(userUid).push(messageData);
+
+  msgInput.value = "";
+}
+
+// Display message in chat box
+function displayMessage(msg) {
+  const div = document.createElement("div");
+  const isMe = msg.sender === auth.currentUser.uid;
+  div.style.textAlign = isMe ? "right" : "left";
+  div.innerText = msg.text;
+  document.getElementById("messages").appendChild(div);
+  document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+}
+
+// Close chat
+function closeChat() {
+  document.getElementById("chatDiv").style.display = "none";
+  chatPartnerUid = null;
 }
 
 // Stay logged in
@@ -113,6 +165,7 @@ auth.onAuthStateChanged(user => {
     document.getElementById("authDiv").style.display = "block";
     document.getElementById("profileDiv").style.display = "none";
     document.getElementById("usersDiv").style.display = "none";
+    document.getElementById("chatDiv").style.display = "none";
+    chatPartnerUid = null;
   }
 });
-
