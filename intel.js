@@ -19,105 +19,112 @@ let chatPartnerUid = null;
 
 // --- NAVIGATION ENGINE ---
 function showScreen(screenId) {
-    const screens = document.querySelectorAll('.screen');
-    screens.forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
 }
 
-// --- AUTH ACTIONS ---
+// --- AUTH LOGIC ---
 window.signUp = function() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    auth.createUserWithEmailAndPassword(email, password)
-        .then(() => showScreen('profileScreen'))
-        .catch(err => alert(err.message));
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(() => showScreen('profileScreen'))
+    .catch(err => document.getElementById("message").innerText = err.message);
 };
 
 window.login = function() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    auth.signInWithEmailAndPassword(email, password)
-        .then(() => { /* logic handled by onAuthStateChanged */ })
-        .catch(err => alert(err.message));
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  auth.signInWithEmailAndPassword(email, password)
+    .catch(err => document.getElementById("message").innerText = err.message);
 };
 
 window.logout = function() {
-    auth.signOut().then(() => showScreen('authScreen'));
+  auth.signOut().then(() => {
+    showScreen('authScreen');
+    chatPartnerUid = null;
+  });
 };
 
-// --- PROFILE & USERS ---
+// --- PROFILE & USER LIST ---
 window.saveProfile = function() {
-    const user = auth.currentUser;
-    const displayName = document.getElementById("displayName").value;
-    if (!displayName) return alert("Enter a name!");
+  const user = auth.currentUser;
+  const displayName = document.getElementById("displayName").value;
+  if (!displayName) return alert("Enter a name!");
 
-    db.ref("users/" + user.uid).set({ email: user.email, displayName })
-      .then(() => showScreen('usersScreen'));
-};
+  db.ref("users/" + user.uid).set({ email: user.email, displayName })
+    .then(() => {
+        showScreen('usersScreen');
+        showUsers();
+    });
+}
 
 function showUsers() {
-    const listDiv = document.getElementById("userList");
-    db.ref("users").on("value", snapshot => {
-        listDiv.innerHTML = "";
-        snapshot.forEach(child => {
-            if (child.key !== auth.currentUser.uid) {
-                const btn = document.createElement("button");
-                btn.className = "btn-secondary";
-                btn.style.width = "100%";
-                btn.style.marginBottom = "5px";
-                btn.innerText = child.val().displayName;
-                btn.onclick = () => startChat(child.key, child.val().displayName);
-                listDiv.appendChild(btn);
-            }
-        });
+  const listDiv = document.getElementById("userList");
+  db.ref("users").on("value", snapshot => {
+    listDiv.innerHTML = "";
+    snapshot.forEach(child => {
+      const user = child.val();
+      const uid = child.key;
+      if (uid !== auth.currentUser.uid) {
+        const btn = document.createElement("button");
+        btn.style.width = "100%";
+        btn.style.marginTop = "10px";
+        btn.innerText = user.displayName || user.email;
+        btn.onclick = () => startChat(uid, user.displayName || user.email);
+        listDiv.appendChild(btn);
+      }
     });
+  });
 }
 
 // --- CHAT LOGIC ---
-function startChat(uid, name) {
-    chatPartnerUid = uid;
-    document.getElementById("chatWith").innerText = name;
-    document.getElementById("messages").innerHTML = "";
-    showScreen('chatScreen');
-    
-    const userUid = auth.currentUser.uid;
-    db.ref("chats").child(userUid).child(chatPartnerUid).on("child_added", snap => {
-        const msg = snap.val();
-        const div = document.createElement("div");
-        div.style.alignSelf = msg.sender === userUid ? "flex-end" : "flex-start";
-        div.style.background = msg.sender === userUid ? "#dcf8c6" : "white";
-        div.style.padding = "8px";
-        div.style.borderRadius = "8px";
-        div.innerText = msg.text;
-        document.getElementById("messages").appendChild(div);
-    });
+function startChat(uid, displayName) {
+  chatPartnerUid = uid;
+  document.getElementById("chatWith").innerText = displayName;
+  document.getElementById("messages").innerHTML = "";
+  showScreen('chatScreen');
+
+  const userUid = auth.currentUser.uid;
+  db.ref("chats").child(userUid).child(chatPartnerUid).on("child_added", snap => {
+    const msg = snap.val();
+    const div = document.createElement("div");
+    div.style.alignSelf = msg.sender === userUid ? "flex-end" : "flex-start";
+    div.style.background = msg.sender === userUid ? "#dcf8c6" : "white";
+    div.style.padding = "10px";
+    div.style.borderRadius = "10px";
+    div.innerText = msg.text;
+    document.getElementById("messages").appendChild(div);
+  });
 }
 
 window.sendMessage = function() {
-    const input = document.getElementById("messageInput");
-    const text = input.value;
-    if(!text) return;
-    
-    const msgData = { sender: auth.currentUser.uid, text: text, time: Date.now() };
-    db.ref("chats").child(auth.currentUser.uid).child(chatPartnerUid).push(msgData);
-    db.ref("chats").child(chatPartnerUid).child(auth.currentUser.uid).push(msgData);
-    input.value = "";
-};
+  const input = document.getElementById("messageInput");
+  const text = input.value.trim();
+  if (!text || !chatPartnerUid) return;
 
-window.backToUsers = function() { showScreen('usersScreen'); };
+  const msgData = { sender: auth.currentUser.uid, text, timestamp: Date.now() };
+  db.ref("chats").child(auth.currentUser.uid).child(chatPartnerUid).push(msgData);
+  db.ref("chats").child(chatPartnerUid).child(auth.currentUser.uid).push(msgData);
+  input.value = "";
+}
 
-// --- OBSERVER (The Brain) ---
+window.backToUsers = function() {
+  showScreen('usersScreen');
+}
+
+// --- AUTH STATE OBSERVER ---
 auth.onAuthStateChanged(user => {
-    if (user) {
-        db.ref("users/" + user.uid).get().then(snap => {
-            if (snap.exists()) {
-                showScreen('usersScreen');
-                showUsers();
-            } else {
-                showScreen('profileScreen');
-            }
-        });
-    } else {
-        showScreen('authScreen');
-    }
+  if (user) {
+    db.ref("users/" + user.uid).get().then(snap => {
+      if (snap.exists() && snap.val().displayName) {
+        showScreen('usersScreen');
+        showUsers();
+      } else {
+        showScreen('profileScreen');
+      }
+    });
+  } else {
+    showScreen('authScreen');
+  }
 });
