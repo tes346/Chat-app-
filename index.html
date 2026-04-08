@@ -22,29 +22,29 @@
     <button onclick="signUp()">Sign Up</button>
     <button onclick="login()">Login</button>
   </div>
+<!-- Profile Screen -->
+<div id="profileScreen">
+  <h3>Set Your Profile</h3>
+  <input type="text" id="displayName" placeholder="Set display name"><br>
+  <button onclick="saveProfile()">Save Profile</button>
+</div>
 
-  <!-- Profile Setup -->
-  <div id="profileDiv" style="display:none;">
-    <h3>Welcome, <span id="userName"></span></h3>
-    <input type="text" id="displayName" placeholder="Set display name"><br>
-    <button onclick="setProfile()">Save Profile</button>
-    <button onclick="logout()">Logout</button>
-  </div>
+<!-- Users List Screen -->
+<div id="usersScreen" style="display:none;">
+  <h3>All Users</h3>
+  <div id="userList"></div>
+  <button onclick="logout()">Logout</button>
+</div>
 
-  <!-- Users List -->
-  <div id="usersDiv" style="display:none;">
-    <h3>All Users</h3>
-    <div id="userList"></div>
-  </div>
+<!-- Chat Screen -->
+<div id="chatScreen" style="display:none;">
+  <h3>Chat with <span id="chatWith"></span></h3>
+  <div id="messages"></div>
+  <input type="text" id="messageInput" placeholder="Type a message">
+  <button onclick="sendMessage()">Send</button>
+  <button onclick="backToUsers()">Back</button>
+</div>
 
-  <!-- Chat Area -->
-  <div id="chatDiv" style="display:none; margin-top:20px;">
-    <h3>Chat with <span id="chatWith"></span></h3>
-    <div id="messages"></div>
-    <input type="text" id="messageInput" placeholder="Type a message">
-    <button onclick="sendMessage()">Send</button>
-    <button onclick="closeChat()">Close Chat</button>
-  </div>
 
   <p id="message"></p>
 
