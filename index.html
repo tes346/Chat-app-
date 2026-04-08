@@ -1,71 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>TEwhatsapp App</title>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial; }
-    input, button { padding: 5px; margin: 5px 0; }
-    #userList button { margin: 5px 0; display: block; width: 200px; text-align: left; }
-    #profileDiv, #usersDiv, #chatDiv { margin-top: 20px; }
-    #messages { border:1px solid #ccc; height:200px; overflow-y:scroll; padding:5px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEwhatsapp App</title>
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
 
-    <div id="login-screen" class="screen"> ... </div>
-    <div id="profile-screen" class="screen"> ... </div>
-    <div id="user-list-screen" class="screen"> ... </div>
-    <div id="chat-screen" class="screen"> ... </div>
+    <div id="app-container">
+        <h2 class="app-title">TEwhatsapp</h2>
+        <p id="message"></p>
 
-    <script>
-        function showScreen(screenId) {
-            const screens = document.querySelectorAll('.screen');
-            screens.forEach(s => s.style.display = 'none');
-            document.getElementById(screenId).style.display = 'block';
-        }
-  <h2>TEwhatsapp App</h2>
+        <div id="authScreen" class="screen active">
+            <div class="card">
+                <h3>Welcome</h3>
+                <input type="email" id="email" placeholder="Enter email">
+                <input type="password" id="password" placeholder="Enter password">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="rememberMe"> 
+                    <label for="rememberMe">Remember Me</label>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="login()">Login</button>
+                    <button class="btn-secondary" onclick="signUp()">Sign Up</button>
+                </div>
+            </div>
+        </div>
 
-  <!-- Authentication -->
-  <div id="authDiv">
-    <input type="email" id="email" placeholder="Enter email"><br>
-    <input type="password" id="password" placeholder="Enter password"><br>
-    <label><input type="checkbox" id="rememberMe"> Remember Me</label><br>
-    <button onclick="signUp()">Sign Up</button>
-    <button onclick="login()">Login</button>
-  </div>
-<!-- Profile Screen -->
-<div id="profileScreen">
-  <h3>Set Your Profile</h1>
-  <input type="text" id="displayName" placeholder="Set display name"><br>
-  <button onclick="saveProfile()">Save Profile</button>
-</div>
+        <div id="profileScreen" class="screen">
+            <div class="card">
+                <h3>Setup Profile</h3>
+                <input type="text" id="displayName" placeholder="Enter your name">
+                <button class="btn-primary" onclick="saveProfile()">Save & Continue</button>
+            </div>
+        </div>
 
-<!-- Users List Screen -->
-<div id="usersScreen" style="display:none;">
-  <h3>All Users</h2>
-  <div id="userList"></div>
-  <button onclick="logout()">Logout</button>
-</div>
+        <div id="usersScreen" class="screen">
+            <div class="card">
+                <div class="header-flex">
+                    <h3>Contacts</h3>
+                    <button class="btn-small" onclick="logout()">Logout</button>
+                </div>
+                <div id="userList"></div>
+            </div>
+        </div>
 
-<!-- Chat Screen -->
-<div id="chatScreen" style="display:none;">
-  <h3>Chat with <span id="chatWith"></span></h3>
-  <div id="messages"></div>
-  <input type="text" id="messageInput" placeholder="Type a message">
-  <button onclick="sendMessage()">Send</button>
-  <button onclick="backToUsers()">Back</button>
-</div>
+        <div id="chatScreen" class="screen">
+            <div class="chat-card">
+                <div class="chat-header">
+                    <button onclick="backToUsers()">←</button>
+                    <span id="chatWith"></span>
+                </div>
+                <div id="messages"></div>
+                <div id="input-area">
+                    <input type="text" id="messageInput" placeholder="Type a message...">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-
-  <p id="message"></p>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-  <!-- App JS -->
-  <script src="intel.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="intel.js"></script>
 </body>
-  </html>
+</html>
