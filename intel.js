@@ -26,8 +26,6 @@ window.signUp = function() {
     .then(() => auth.createUserWithEmailAndPassword(email, password))
     .then(userCredential => {
       const user = userCredential.user;
-      user.sendEmailVerification().then(() => {
-        document.getElementById("message").innerText = "Account created! Verification email sent.";
       });
     })
     .catch(err => document.getElementById("message").innerText = err.message);
