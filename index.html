@@ -12,6 +12,18 @@
   </style>
 </head>
 <body>
+
+    <div id="login-screen" class="screen"> ... </div>
+    <div id="profile-screen" class="screen"> ... </div>
+    <div id="user-list-screen" class="screen"> ... </div>
+    <div id="chat-screen" class="screen"> ... </div>
+
+    <script>
+        function showScreen(screenId) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(s => s.style.display = 'none');
+            document.getElementById(screenId).style.display = 'block';
+        }
   <h2>TEwhatsapp App</h2>
 
   <!-- Authentication -->
