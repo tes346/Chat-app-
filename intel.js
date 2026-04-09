@@ -15,34 +15,61 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// --- THE CORE NAVIGATION ---
+// 1. THE NAVIGATION ENGINE
+// This replaces all old "style.display = block/none" lines
 function showScreen(screenId) {
-    // 1. Find every element with class 'screen' and hide it
-    const allScreens = document.querySelectorAll('.screen');
-    allScreens.forEach(s => s.classList.remove('active'));
+    // Hide everything with the class 'screen'
+    const screens = document.querySelectorAll('.screen');
+    screens.forEach(s => s.classList.remove('active')); 
 
-    // 2. Show the specific screen
+    // Show only the screen you want
     const target = document.getElementById(screenId);
-    if(target) {
+    if (target) {
         target.classList.add('active');
     }
 }
 
-// --- AUTH OBSERVER ---
+// 2. THE AUTH OBSERVER
+// This handles the automatic "flap" when the app starts
 auth.onAuthStateChanged(user => {
     if (user) {
         db.ref("users/" + user.uid).get().then(snap => {
             if (snap.exists() && snap.val().displayName) {
-                showScreen('usersScreen');
-                loadUserList();
+                // User is logged in and has a name: Go to Contacts
+                showScreen('usersScreen'); 
+                loadUsers(); 
             } else {
-                showScreen('profileScreen');
+                // User is logged in but no name: Go to Profile Setup
+                showScreen('profileScreen'); 
             }
         });
     } else {
-        showScreen('authScreen');
+        // Not logged in: Show the Login screen
+        showScreen('authScreen'); 
     }
 });
+
+// 3. START CHAT TRIGGER
+// Call this when a contact is clicked in your list
+function startChat(uid, name) {
+    chatPartnerUid = uid;
+    document.getElementById("chatWith").innerText = name;
+    
+    // Switch to the chat screen
+    showScreen('chatScreen'); 
+    
+    // Clear old messages and start listening for new ones
+    const messagesDiv = document.getElementById("messages");
+    messagesDiv.innerHTML = ""; 
+    
+    // ... insert your existing Firebase database .on("child_added") listener here ...
+}
+
+// 4. BACK BUTTON LOGIC
+window.backToUsers = () => {
+    showScreen('usersScreen');
+};
+          
 
 // Update your existing functions to use showScreen()
 window.login = function() {
