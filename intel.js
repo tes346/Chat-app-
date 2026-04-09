@@ -16,44 +16,61 @@ const auth = firebase.auth();
 const database = firebase.database();
 let currentRoomId = "";
 
-window.onload = () => {
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById('login-screen').style.display = "none";
-            document.getElementById('contact-screen').style.display = "block";
-            // Save user to database if they don't exist
-            database.ref('users/' + user.uid).set({
-                email: user.email,
-                uid: user.uid
-            });
-            showContacts();
-        } else {
-            document.getElementById('login-screen').style.display = "block";
-            document.getElementById('contact-screen').style.display = "none";
-            document.getElementById('chat-container').style.display = "none";
-        }
-    });
-};
+// MONITOR LOGIN STATUS
+auth.onAuthStateChanged(user => {
+    if (user) {
+        // Check if user already has a name in the database
+        database.ref('users/' + user.uid).once('value', snap => {
+            const userData = snap.val();
+            if (userData && userData.username) {
+                // If they have a name, go to contacts
+                showScreen('contact-screen');
+                showUsers();
+            } else {
+                // If no name found, go to profile setup
+                showScreen('profile-screen');
+            }
+        });
+    } else {
+        showScreen('login-screen');
+    }
+});
 
-// LOGIN / SIGNUP LOGIC
+// HELPER TO SWITCH SCREENS
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = id === 'chat-container' ? 'flex' : 'block';
+}
+
+// LOGIN / SIGNUP
 document.getElementById('login-btn').onclick = () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
+    if(!email || !pass) return alert("Enter email and password");
 
-    if(!email || !pass) return alert("Fill all fields!");
-
-    // Try to login, if user doesn't exist, it creates a new account
     auth.signInWithEmailAndPassword(email, pass).catch(() => {
         auth.createUserWithEmailAndPassword(email, pass).catch(err => alert(err.message));
     });
 };
 
-// LOGOUT LOGIC
-document.getElementById('logout-btn').onclick = () => {
-    auth.signOut().then(() => location.reload());
+// SAVE PROFILE NAME
+document.getElementById('save-profile-btn').onclick = () => {
+    const name = document.getElementById('display-name').value;
+    if(!name) return alert("Please enter a name");
+
+    const user = auth.currentUser;
+    database.ref('users/' + user.uid).update({
+        username: name,
+        email: user.email,
+        uid: user.uid
+    }).then(() => {
+        showScreen('contact-screen');
+        showUsers();
+    });
 };
 
-function showContacts() {
+// SHOW USERS LIST
+function showUsers() {
     database.ref('users').on('value', snap => {
         const div = document.getElementById('contact-buttons');
         div.innerHTML = "";
@@ -61,12 +78,10 @@ function showContacts() {
             const u = child.val();
             if (u.uid !== auth.currentUser.uid) {
                 const b = document.createElement('button');
-                b.style = "width:100%; padding:15px; margin-bottom:5px; background:white; border:1px solid #ddd;";
-                b.innerText = u.email;
+                b.innerText = u.username || u.email || "User";
                 b.onclick = () => {
                     currentRoomId = [auth.currentUser.uid, u.uid].sort().join('_');
-                    document.getElementById('contact-screen').style.display = "none";
-                    document.getElementById('chat-container').style.display = "flex";
+                    showScreen('chat-container');
                     loadMsgs();
                 };
                 div.appendChild(b);
@@ -75,6 +90,7 @@ function showContacts() {
     });
 }
 
+// LOAD MESSAGES
 function loadMsgs() {
     database.ref('chats/' + currentRoomId).on('value', snap => {
         const box = document.getElementById('messages');
@@ -90,6 +106,7 @@ function loadMsgs() {
     });
 }
 
+// SEND MESSAGE
 document.getElementById('send-btn').onclick = () => {
     const inp = document.getElementById('user-input');
     if (!inp.value || !currentRoomId) return;
@@ -101,4 +118,8 @@ document.getElementById('send-btn').onclick = () => {
     inp.value = "";
 };
 
-              
+// LOGOUT
+document.getElementById('logout-btn').onclick = () => {
+    auth.signOut().then(() => location.reload());
+};
+                     
