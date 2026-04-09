@@ -15,39 +15,43 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// 1. THE NAVIGATION ENGINE
-// This replaces all old "style.display = block/none" lines
+// 1. Navigation Logic
 function showScreen(screenId) {
-    // Hide everything with the class 'screen'
+    // Hide all
     const screens = document.querySelectorAll('.screen');
-    screens.forEach(s => s.classList.remove('active')); 
-
-    // Show only the screen you want
+    screens.forEach(s => s.classList.remove('active'));
+    
+    // Show one
     const target = document.getElementById(screenId);
     if (target) {
         target.classList.add('active');
     }
 }
 
-// 2. THE AUTH OBSERVER
-// This handles the automatic "flap" when the app starts
+// 2. Auth State Logic (The Brain)
 auth.onAuthStateChanged(user => {
     if (user) {
         db.ref("users/" + user.uid).get().then(snap => {
             if (snap.exists() && snap.val().displayName) {
-                // User is logged in and has a name: Go to Contacts
-                showScreen('usersScreen'); 
-                loadUsers(); 
+                showScreen('usersScreen'); // Go to Contacts
+                loadUsers();
             } else {
-                // User is logged in but no name: Go to Profile Setup
-                showScreen('profileScreen'); 
+                showScreen('profileScreen'); // Go to Profile Setup
             }
         });
     } else {
-        // Not logged in: Show the Login screen
-        showScreen('authScreen'); 
+        showScreen('authScreen'); // Show Login
     }
 });
+
+// Update startChat to switch screens
+function startChat(uid, name) {
+    chatPartnerUid = uid;
+    document.getElementById("chatWith").innerText = name;
+    showScreen('chatScreen'); // Switch to the chat page
+    // ... your message listener ...
+}
+
 
 // 3. START CHAT TRIGGER
 // Call this when a contact is clicked in your list
