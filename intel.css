@@ -1,54 +1,54 @@
-body {
-    margin: 0;
-    font-family: sans-serif;
-    background: #ece5dd;
-    display: flex;
-    justify-content: center;
-}
-
+/* Container to keep it looking like a mobile app */
 #app-container {
     width: 100%;
     max-width: 450px;
     height: 100vh;
-    background: white;
+    margin: 0 auto;
     position: relative;
+    background: #f0f2f5;
     overflow: hidden;
 }
 
-/* THE FIX: Hide all screens by default */
+/* HIDE ALL SCREENS BY DEFAULT */
 .screen {
     display: none; 
-    flex-direction: column;
-    height: 100%;
+    position: absolute;
     width: 100%;
+    height: 100%;
+    flex-direction: column;
     padding: 20px;
     box-sizing: border-box;
-    position: absolute;
-    top: 0;
-    left: 0;
+    background: white;
 }
 
-/* Only the active screen shows */
+/* SHOW ONLY ACTIVE SCREEN */
 .screen.active {
     display: flex;
-    animation: flap 0.3s ease-out;
+    animation: flapIn 0.3s ease-out;
 }
 
-@keyframes flap {
+@keyframes flapIn {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
 
+/* Chat Styling to match your screenshot */
 #messages {
     flex: 1;
     overflow-y: auto;
     background: #e5ddd5;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 10px;
 }
 
-input { padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
-button { padding: 12px; cursor: pointer; background: #075e54; color: white; border: none; border-radius: 5px; }
-.small-btn { padding: 5px 10px; background: #d32f2f; }
-    
+.chat-input-area {
+    display: flex;
+    padding: 10px 0;
+    gap: 10px;
+}
+
+input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; }
+button { cursor: pointer; border-radius: 8px; border: none; background: #075e54; color: white; padding: 10px; }
