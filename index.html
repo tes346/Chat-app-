@@ -1,53 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEwhatsapp App</title>
+    <title>TEwhatsapp</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="app-container">
-        <div id="authScreen" class="screen active">
-            <h2>TEwhatsapp</h2>
+        <section id="authScreen" class="screen active">
+            <h1>TEwhatsapp</h1>
             <div class="auth-box">
-                <input type="email" id="email" placeholder="Enter email">
-                <input type="password" id="password" placeholder="Enter password">
-                <label><input type="checkbox" id="rememberMe"> Remember Me</label>
-                <div class="btn-row">
+                <input type="email" id="email" placeholder="Email">
+                <input type="password" id="password" placeholder="Password">
+                <div class="row">
                     <button onclick="login()">Login</button>
                     <button onclick="signUp()">Sign Up</button>
                 </div>
             </div>
             <p id="message"></p>
-        </div>
+        </section>
 
-        <div id="profileScreen" class="screen">
+        <section id="profileScreen" class="screen">
             <h2>Setup Profile</h2>
-            <input type="text" id="displayName" placeholder="Enter your name">
-            <button class="btn-primary" onclick="saveProfile()">Save & Continue</button>
-        </div>
+            <input type="text" id="displayName" placeholder="Your Name">
+            <button onclick="saveProfile()">Save & Continue</button>
+        </section>
 
-        <div id="usersScreen" class="screen">
-            <div class="header-bar">
+        <section id="usersScreen" class="screen">
+            <div class="header">
                 <h3>Contacts</h3>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+                <button onclick="logout()" class="small-btn">Logout</button>
             </div>
             <div id="userList"></div>
-        </div>
+        </section>
 
-        <div id="chatScreen" class="screen">
+        <section id="chatScreen" class="screen">
             <div class="chat-header">
-                <button onclick="backToUsers()">← Back</button>
+                <button onclick="backToUsers()">←</button>
                 <span id="chatWith"></span>
             </div>
             <div id="messages"></div>
-            <div id="input-area">
-                <input type="text" id="messageInput" placeholder="Type a message...">
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Message...">
                 <button onclick="sendMessage()">Send</button>
             </div>
-        </div>
+        </section>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -56,3 +55,4 @@
     <script src="intel.js"></script>
 </body>
 </html>
+                    
