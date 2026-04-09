@@ -3,50 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEwhatsapp</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div id="app">
-        <section id="authScreen" class="screen active">
-            <h1>TEwhatsapp</h1>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password">
-            <button onclick="login()">Login</button>
-            <button onclick="signUp()">Sign Up</button>
-        </section>
-
-        <section id="profileScreen" class="screen">
-            <h1>Setup Profile</h1>
-            <input type="text" id="displayName" placeholder="Enter name">
-            <button onclick="saveProfile()">Save</button>
-        </section>
-
-        <section id="usersScreen" class="screen">
-            <div class="header">
-                <h2>Contacts</h2>
-                <button onclick="logout()">Logout</button>
-            </div>
-            <div id="userList"></div>
-        </section>
-
-        <section id="chatScreen" class="screen">
-            <div class="header">
-                <button onclick="showScreen('usersScreen')">←</button>
-                <span id="chatWith"></span>
-            </div>
-            <div id="messages"></div>
-            <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Message...">
-                <button onclick="sendMessage()">Send</button>
-            </div>
-        </section>
-    </div>
-
+    <title>WhatsApp Clone (Email)</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 0; background-color: #ece5dd; }
+        .screen { display: none; padding: 20px; text-align: center; height: 100vh; box-sizing: border-box; }
+        input { width: 90%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
+        button { width: 95%; padding: 12px; background-color: #25D366; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #messages { height: 70vh; overflow-y: auto; display: flex; flex-direction: column; background: #e5ddd5; padding: 10px; }
+        .sent { align-self: flex-end; background: #dcf8c6; padding: 10px; margin: 5px; border-radius: 10px; }
+        .received { align-self: flex-start; background: white; padding: 10px; margin: 5px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen" class="screen" style="display: block;">
+        <h2 style="color: #075E54;">WhatsApp Email Login</h2>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="password" placeholder="Password">
+        <button id="login-btn">Login / Sign Up</button>
+    </div>
+
+    <div id="contact-screen" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #075E54; color: white; padding: 10px; margin: -20px -20px 20px -20px;">
+            <h3 style="margin: 0;">Contacts</h3>
+            <button id="logout-btn" style="width: auto; background: #ff4444; padding: 5px 10px;">Logout</button>
+        </div>
+        <div id="contact-buttons"></div>
+    </div>
+
+    <div id="chat-container" class="screen" style="padding: 0; flex-direction: column;">
+        <div style="background: #075E54; color: white; padding: 15px; text-align: left;">
+            <span onclick="location.reload()" style="cursor:pointer;">← Back</span>
+        </div>
+        <div id="messages"></div>
+        <div id="input-area" style="padding: 10px; background: white; display: flex;">
+            <input type="text" id="user-input" placeholder="Type a message...">
+            <button id="send-btn" style="width: 70px; margin-left: 5px;">Send</button>
+        </div>
+    </div>
+
     <script src="intel.js"></script>
 </body>
-    </html>
-    
+</html>
