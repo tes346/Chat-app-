@@ -15,116 +15,74 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-let chatPartnerUid = null;
-
-// --- NAVIGATION ENGINE ---
+// --- THE CORE NAVIGATION ---
 function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
+    // 1. Find every element with class 'screen' and hide it
+    const allScreens = document.querySelectorAll('.screen');
+    allScreens.forEach(s => s.classList.remove('active'));
+
+    // 2. Show the specific screen
+    const target = document.getElementById(screenId);
+    if(target) {
+        target.classList.add('active');
+    }
 }
 
-// --- AUTH LOGIC ---
-window.signUp = function() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(() => showScreen('profileScreen'))
-    .catch(err => document.getElementById("message").innerText = err.message);
-};
-
-window.login = function() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  auth.signInWithEmailAndPassword(email, password)
-    .catch(err => document.getElementById("message").innerText = err.message);
-};
-
-window.logout = function() {
-  auth.signOut().then(() => {
-    showScreen('authScreen');
-    chatPartnerUid = null;
-  });
-};
-
-// --- PROFILE & USER LIST ---
-window.saveProfile = function() {
-  const user = auth.currentUser;
-  const displayName = document.getElementById("displayName").value;
-  if (!displayName) return alert("Enter a name!");
-
-  db.ref("users/" + user.uid).set({ email: user.email, displayName })
-    .then(() => {
-        showScreen('usersScreen');
-        showUsers();
-    });
-}
-
-function showUsers() {
-  const listDiv = document.getElementById("userList");
-  db.ref("users").on("value", snapshot => {
-    listDiv.innerHTML = "";
-    snapshot.forEach(child => {
-      const user = child.val();
-      const uid = child.key;
-      if (uid !== auth.currentUser.uid) {
-        const btn = document.createElement("button");
-        btn.style.width = "100%";
-        btn.style.marginTop = "10px";
-        btn.innerText = user.displayName || user.email;
-        btn.onclick = () => startChat(uid, user.displayName || user.email);
-        listDiv.appendChild(btn);
-      }
-    });
-  });
-}
-
-// --- CHAT LOGIC ---
-function startChat(uid, displayName) {
-  chatPartnerUid = uid;
-  document.getElementById("chatWith").innerText = displayName;
-  document.getElementById("messages").innerHTML = "";
-  showScreen('chatScreen');
-
-  const userUid = auth.currentUser.uid;
-  db.ref("chats").child(userUid).child(chatPartnerUid).on("child_added", snap => {
-    const msg = snap.val();
-    const div = document.createElement("div");
-    div.style.alignSelf = msg.sender === userUid ? "flex-end" : "flex-start";
-    div.style.background = msg.sender === userUid ? "#dcf8c6" : "white";
-    div.style.padding = "10px";
-    div.style.borderRadius = "10px";
-    div.innerText = msg.text;
-    document.getElementById("messages").appendChild(div);
-  });
-}
-
-window.sendMessage = function() {
-  const input = document.getElementById("messageInput");
-  const text = input.value.trim();
-  if (!text || !chatPartnerUid) return;
-
-  const msgData = { sender: auth.currentUser.uid, text, timestamp: Date.now() };
-  db.ref("chats").child(auth.currentUser.uid).child(chatPartnerUid).push(msgData);
-  db.ref("chats").child(chatPartnerUid).child(auth.currentUser.uid).push(msgData);
-  input.value = "";
-}
-
-window.backToUsers = function() {
-  showScreen('usersScreen');
-}
-
-// --- AUTH STATE OBSERVER ---
+// --- AUTH OBSERVER ---
 auth.onAuthStateChanged(user => {
-  if (user) {
-    db.ref("users/" + user.uid).get().then(snap => {
-      if (snap.exists() && snap.val().displayName) {
-        showScreen('usersScreen');
-        showUsers();
-      } else {
-        showScreen('profileScreen');
-      }
-    });
-  } else {
-    showScreen('authScreen');
-  }
+    if (user) {
+        db.ref("users/" + user.uid).get().then(snap => {
+            if (snap.exists() && snap.val().displayName) {
+                showScreen('usersScreen');
+                loadUserList();
+            } else {
+                showScreen('profileScreen');
+            }
+        });
+    } else {
+        showScreen('authScreen');
+    }
 });
+
+// Update your existing functions to use showScreen()
+window.login = function() {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+    auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+};
+
+window.saveProfile = function() {
+    const name = document.getElementById("displayName").value;
+    const user = auth.currentUser;
+    if(!name) return;
+    db.ref("users/" + user.uid).set({ email: user.email, displayName: name })
+      .then(() => showScreen('usersScreen'));
+};
+
+function loadUserList() {
+    const list = document.getElementById("userList");
+    db.ref("users").on("value", snap => {
+        list.innerHTML = "";
+        snap.forEach(child => {
+            if(child.key !== auth.currentUser.uid) {
+                const b = document.createElement("button");
+                b.innerText = child.val().displayName;
+                b.style.width = "100%";
+                b.style.marginTop = "5px";
+                b.onclick = () => startChat(child.key, child.val().displayName);
+                list.appendChild(b);
+            }
+        });
+    });
+}
+
+function startChat(uid, name) {
+    chatPartnerUid = uid;
+    document.getElementById("chatWith").innerText = name;
+    showScreen('chatScreen');
+    // ... add your existing message listener here ...
+}
+
+window.backToUsers = () => showScreen('usersScreen');
+
+window.logout = () => auth.signOut();
