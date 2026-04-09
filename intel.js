@@ -13,107 +13,91 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.database();
+const database = firebase.database();
+let currentRoomId = "";
 
-// 1. Navigation Logic
-function showScreen(screenId) {
-    // Hide all
-    const screens = document.querySelectorAll('.screen');
-    screens.forEach(s => s.classList.remove('active'));
-    
-    // Show one
-    const target = document.getElementById(screenId);
-    if (target) {
-        target.classList.add('active');
-    }
-}
-
-// 2. Auth State Logic (The Brain)
-auth.onAuthStateChanged(user => {
-    if (user) {
-        db.ref("users/" + user.uid).get().then(snap => {
-            if (snap.exists() && snap.val().displayName) {
-                showScreen('usersScreen'); // Go to Contacts
-                loadUsers();
-            } else {
-                showScreen('profileScreen'); // Go to Profile Setup
-            }
-        });
-    } else {
-        showScreen('authScreen'); // Show Login
-    }
-});
-
-// Update startChat to switch screens
-function startChat(uid, name) {
-    chatPartnerUid = uid;
-    document.getElementById("chatWith").innerText = name;
-    showScreen('chatScreen'); // Switch to the chat page
-    // ... your message listener ...
-}
-
-
-// 3. START CHAT TRIGGER
-// Call this when a contact is clicked in your list
-function startChat(uid, name) {
-    chatPartnerUid = uid;
-    document.getElementById("chatWith").innerText = name;
-    
-    // Switch to the chat screen
-    showScreen('chatScreen'); 
-    
-    // Clear old messages and start listening for new ones
-    const messagesDiv = document.getElementById("messages");
-    messagesDiv.innerHTML = ""; 
-    
-    // ... insert your existing Firebase database .on("child_added") listener here ...
-}
-
-// 4. BACK BUTTON LOGIC
-window.backToUsers = () => {
-    showScreen('usersScreen');
-};
-          
-
-// Update your existing functions to use showScreen()
-window.login = function() {
-    const email = document.getElementById("email").value;
-    const pass = document.getElementById("password").value;
-    auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+window.onload = () => {
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('login-screen').style.display = "none";
+            document.getElementById('contact-screen').style.display = "block";
+            // Save user to database if they don't exist
+            database.ref('users/' + user.uid).set({
+                email: user.email,
+                uid: user.uid
+            });
+            showContacts();
+        } else {
+            document.getElementById('login-screen').style.display = "block";
+            document.getElementById('contact-screen').style.display = "none";
+            document.getElementById('chat-container').style.display = "none";
+        }
+    });
 };
 
-window.saveProfile = function() {
-    const name = document.getElementById("displayName").value;
-    const user = auth.currentUser;
-    if(!name) return;
-    db.ref("users/" + user.uid).set({ email: user.email, displayName: name })
-      .then(() => showScreen('usersScreen'));
+// LOGIN / SIGNUP LOGIC
+document.getElementById('login-btn').onclick = () => {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+
+    if(!email || !pass) return alert("Fill all fields!");
+
+    // Try to login, if user doesn't exist, it creates a new account
+    auth.signInWithEmailAndPassword(email, pass).catch(() => {
+        auth.createUserWithEmailAndPassword(email, pass).catch(err => alert(err.message));
+    });
 };
 
-function loadUserList() {
-    const list = document.getElementById("userList");
-    db.ref("users").on("value", snap => {
-        list.innerHTML = "";
+// LOGOUT LOGIC
+document.getElementById('logout-btn').onclick = () => {
+    auth.signOut().then(() => location.reload());
+};
+
+function showContacts() {
+    database.ref('users').on('value', snap => {
+        const div = document.getElementById('contact-buttons');
+        div.innerHTML = "";
         snap.forEach(child => {
-            if(child.key !== auth.currentUser.uid) {
-                const b = document.createElement("button");
-                b.innerText = child.val().displayName;
-                b.style.width = "100%";
-                b.style.marginTop = "5px";
-                b.onclick = () => startChat(child.key, child.val().displayName);
-                list.appendChild(b);
+            const u = child.val();
+            if (u.uid !== auth.currentUser.uid) {
+                const b = document.createElement('button');
+                b.style = "width:100%; padding:15px; margin-bottom:5px; background:white; border:1px solid #ddd;";
+                b.innerText = u.email;
+                b.onclick = () => {
+                    currentRoomId = [auth.currentUser.uid, u.uid].sort().join('_');
+                    document.getElementById('contact-screen').style.display = "none";
+                    document.getElementById('chat-container').style.display = "flex";
+                    loadMsgs();
+                };
+                div.appendChild(b);
             }
         });
     });
 }
 
-function startChat(uid, name) {
-    chatPartnerUid = uid;
-    document.getElementById("chatWith").innerText = name;
-    showScreen('chatScreen');
-    // ... add your existing message listener here ...
+function loadMsgs() {
+    database.ref('chats/' + currentRoomId).on('value', snap => {
+        const box = document.getElementById('messages');
+        box.innerHTML = "";
+        snap.forEach(c => {
+            const m = c.val();
+            const d = document.createElement('div');
+            d.innerText = m.text;
+            d.className = m.sender === auth.currentUser.uid ? "sent" : "received";
+            box.appendChild(d);
+        });
+        box.scrollTop = box.scrollHeight;
+    });
 }
 
-window.backToUsers = () => showScreen('usersScreen');
+document.getElementById('send-btn').onclick = () => {
+    const inp = document.getElementById('user-input');
+    if (!inp.value || !currentRoomId) return;
+    database.ref('chats/' + currentRoomId).push({
+        sender: auth.currentUser.uid,
+        text: inp.value,
+        timestamp: Date.now()
+    });
+    inp.value = "";
+};
 
-window.logout = () => auth.signOut();
