@@ -66,9 +66,7 @@ document.getElementById('login-btn').onclick = () => {
 document.getElementById('logout-btn').onclick = () => {
     auth.signOut().then(() => location.reload());
 };
-
 function showUsers() {
-    document.getElementById('contact-screen').style.display = "block";
     database.ref('users').on('value', snap => {
         const div = document.getElementById('contact-buttons');
         div.innerHTML = "";
@@ -76,8 +74,12 @@ function showUsers() {
             const u = child.val();
             if (u.uid !== auth.currentUser.uid) {
                 const b = document.createElement('button');
-                b.style = "width:100%; padding:15px; margin-bottom:5px; background:white; border:1px solid #ddd;";
-                b.innerText = u.displayName || u.email; // Shows name if exists, else email
+                b.style = "width:100%; padding:15px; margin-bottom:5px; background:white; border:1px solid #ddd; border-radius:8px; text-align:left; color:black;";
+                
+                // This line is the fix: it checks multiple possible names
+                // If everything is missing, it shows "User" plus part of their ID
+                b.innerText = u.displayName || u.email || u.username || "User " + u.uid.substring(0, 4);
+                
                 b.onclick = () => {
                     currentRoomId = [auth.currentUser.uid, u.uid].sort().join('_');
                     document.getElementById('contact-screen').style.display = "none";
@@ -89,6 +91,8 @@ function showUsers() {
         });
     });
 }
+
+
 
 function loadMsgs() {
     database.ref('chats/' + currentRoomId).on('value', snap => {
