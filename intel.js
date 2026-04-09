@@ -73,22 +73,39 @@ function loadContacts() {
     database.ref('users').on('value', snap => {
         const div = document.getElementById('contact-buttons');
         div.innerHTML = "";
+        
         snap.forEach(child => {
             const u = child.val();
+            
+            // Only show OTHER users, not yourself
             if (u.uid !== auth.currentUser.uid) {
                 const b = document.createElement('button');
-                b.innerText = u.username || u.email;
+                
+                // Styling the button to look like a chat list item
+                b.style = "width:100%; padding:15px; text-align:left; background:white; border:none; border-bottom:1px solid #ddd; font-size:16px; cursor:pointer;";
+                b.innerText = u.username || u.email || "User";
+                
+                // THE CLICK ACTION
                 b.onclick = () => {
+                    // 1. Create a unique Room ID between you and this specific user
                     currentRoomId = [auth.currentUser.uid, u.uid].sort().join('_');
-                    document.getElementById('chat-header-name').innerText = u.username;
+                    
+                    // 2. Update the name at the top of the chat screen
+                    const headerName = document.getElementById('chat-header-name');
+                    if(headerName) headerName.innerText = u.username || u.email;
+                    
+                    // 3. Switch to the Chat screen
                     showScreen('chat-container');
+                    
+                    // 4. Start loading messages for this room
                     loadMsgs();
                 };
+                
                 div.appendChild(b);
             }
         });
     });
-}
+    }
 
 // 6. MESSAGING
 function loadMsgs() {
