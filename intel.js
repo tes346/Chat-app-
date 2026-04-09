@@ -20,40 +20,55 @@ window.onload = () => {
     auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('login-screen').style.display = "none";
-            document.getElementById('contact-screen').style.display = "block";
-            // Save user to database if they don't exist
-            database.ref('users/' + user.uid).set({
-                email: user.email,
-                uid: user.uid
+            
+            // Check if user already has a name in the database
+            database.ref('users/' + user.uid).once('value', snap => {
+                if (snap.exists() && snap.val().displayName) {
+                    showUsers(); // Go to users list
+                } else {
+                    document.getElementById('profile-setup').style.display = "block"; // Show name input
+                }
             });
-            showContacts();
         } else {
             document.getElementById('login-screen').style.display = "block";
             document.getElementById('contact-screen').style.display = "none";
-            document.getElementById('chat-container').style.display = "none";
         }
     });
 };
 
-// LOGIN / SIGNUP LOGIC
+// SAVE PROFILE NAME
+document.getElementById('save-profile-btn').onclick = () => {
+    const name = document.getElementById('display-name').value;
+    if(!name) return alert("Please enter a name");
+
+    database.ref('users/' + auth.currentUser.uid).set({
+        email: auth.currentUser.email,
+        displayName: name,
+        uid: auth.currentUser.uid
+    }).then(() => {
+        document.getElementById('profile-setup').style.display = "none";
+        showUsers();
+    });
+};
+
+// LOGIN LOGIC
 document.getElementById('login-btn').onclick = () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
-
     if(!email || !pass) return alert("Fill all fields!");
 
-    // Try to login, if user doesn't exist, it creates a new account
     auth.signInWithEmailAndPassword(email, pass).catch(() => {
         auth.createUserWithEmailAndPassword(email, pass).catch(err => alert(err.message));
     });
 };
 
-// LOGOUT LOGIC
+// LOGOUT
 document.getElementById('logout-btn').onclick = () => {
     auth.signOut().then(() => location.reload());
 };
 
-function showContacts() {
+function showUsers() {
+    document.getElementById('contact-screen').style.display = "block";
     database.ref('users').on('value', snap => {
         const div = document.getElementById('contact-buttons');
         div.innerHTML = "";
@@ -62,7 +77,7 @@ function showContacts() {
             if (u.uid !== auth.currentUser.uid) {
                 const b = document.createElement('button');
                 b.style = "width:100%; padding:15px; margin-bottom:5px; background:white; border:1px solid #ddd;";
-                b.innerText = u.email;
+                b.innerText = u.displayName || u.email; // Shows name if exists, else email
                 b.onclick = () => {
                     currentRoomId = [auth.currentUser.uid, u.uid].sort().join('_');
                     document.getElementById('contact-screen').style.display = "none";
@@ -100,4 +115,5 @@ document.getElementById('send-btn').onclick = () => {
     });
     inp.value = "";
 };
+  
 
