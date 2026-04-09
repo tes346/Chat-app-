@@ -16,25 +16,22 @@ const auth = firebase.auth();
 const database = firebase.database();
 let currentRoomId = "";
 
-window.onload = () => {
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById('login-screen').style.display = "none";
-            
-            // Check if user already has a name in the database
-            database.ref('users/' + user.uid).once('value', snap => {
-                if (snap.exists() && snap.val().displayName) {
-                    showUsers(); // Go to users list
-                } else {
-                    document.getElementById('profile-setup').style.display = "block"; // Show name input
-                }
-            });
-        } else {
-            document.getElementById('login-screen').style.display = "block";
-            document.getElementById('contact-screen').style.display = "none";
-        }
-    });
-};
+auth.onAuthStateChanged(user => {
+    if (user) {
+        document.getElementById('login-screen').style.display = "none";
+        document.getElementById('contact-screen').style.display = "block";
+        
+        // Use update to add/refresh the email field without deleting other data
+        database.ref('users/' + user.uid).update({
+            email: user.email,
+            uid: user.uid
+        });
+        
+        showContacts();
+    } else {
+        // ... rest of your logout logic
+    }
+});
 
 // SAVE PROFILE NAME
 document.getElementById('save-profile-btn').onclick = () => {
