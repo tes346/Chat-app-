@@ -79,6 +79,7 @@ function loadContacts() {
                 const b = document.createElement('button');
                 b.innerText = u.username || u.email;
                 b.onclick = () => {
+                  console.log("Tapped user:", u.username); // This helps you debug!
                     currentRoomId = [auth.currentUser.uid, u.uid].sort().join('_');
                     document.getElementById('chat-header-name').innerText = u.username;
                     showScreen('chat-container');
