@@ -41,7 +41,10 @@ auth.onAuthStateChanged(user => {
         showScreen('login-screen');
     }
 });
-
+}else{
+  showScreen('chat-container');
+}
+});
 // 3. LOGIN / SIGNUP
 document.getElementById('login-btn').onclick = () => {
     const email = document.getElementById('email').value;
