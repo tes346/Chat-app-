@@ -40,16 +40,22 @@
         </div>
         <div id="contact-buttons"></div>
     </div>
-
     <div id="chat-container" class="screen" style="padding: 0; flex-direction: column;">
-        <div style="background: #075E54; color: white; padding: 15px; text-align: left;">
-            <span onclick="location.reload()" style="cursor:pointer;">← Back</span>
-        </div>
-        <div id="messages"></div>
-        <div id="input-area" style="padding: 10px; background: white; display: flex;">
-            <input type="text" id="user-input" placeholder="Type a message...">
-            <button id="send-btn" style="width: 70px; margin-left: 5px;">Send</button>
-        </div>
+    
+    <div style="background: #075E54; color: white; padding: 15px; text-align: left;">
+        <span onclick="showScreen('contact-screen')" style="cursor:pointer;">← Back</span>
+        <span id="chat-header-name" style="margin-left: 10px; font-weight: bold;"></span>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="input-area" style="padding: 10px; background: white; display: flex;">
+        <input type="text" id="user-input" placeholder="Type a message...">
+        <button id="send-btn" style="width: 70px; margin-left: 5px;">Send</button>
+    </div>
+
+</div>
+
     </div>
 
     <script src="intel.js"></script>
