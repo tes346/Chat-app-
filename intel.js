@@ -24,10 +24,15 @@ function showScreen(screenId) {
     else target.style.display = 'block';
 }
 
-// 2. AUTH OBSERVER
 auth.onAuthStateChanged(user => {
+
+    // Always show welcome first
+    if (!localStorage.getItem("seenWelcome")) {
+        showScreen('welcome-screen');
+        return;
+    }
+
     if (user) {
-        // Check if user has a username in the database
         database.ref('users/' + user.uid).once('value', snap => {
             const val = snap.val();
             if (val && val.username) {
@@ -39,8 +44,9 @@ auth.onAuthStateChanged(user => {
         });
     } else {
         showScreen('login-screen');
-}
+    }
 });
+
 // 3. LOGIN / SIGNUP
 document.getElementById('login-btn').onclick = () => {
     const email = document.getElementById('email').value;
@@ -120,4 +126,9 @@ document.getElementById('send-btn').onclick = () => {
 document.getElementById('logout-btn').onclick = () => {
     auth.signOut().then(() => location.reload());
 };
-          
+      
+          // ✅ ADD THIS BELOW EVERYTHING
+document.getElementById('agree-btn').onclick = () => {
+    localStorage.setItem("seenWelcome", "true");
+    showScreen('login-screen');
+};
