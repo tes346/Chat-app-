@@ -19,7 +19,23 @@
 </head>
 <body>
 
-    <div id="login-screen" class="screen" style="display: block;">
+<div id="welcome-screen" class="screen" style="display: block; background: #0b141a; color: white;">
+
+    <div style="text-align:center; margin-top: 60px;">
+        <h1>Welcome to WhatsApp</h1>
+        <p style="color: #aaa; padding: 0 20px;">
+            Read our Privacy Policy. Tap "Agree and continue" to accept the Terms of Service.
+        </p>
+    </div>
+
+    <div style="position: absolute; bottom: 40px; width: 100%; text-align: center;">
+        <button id="agree-btn" style="width: 90%; background: #25D366;">
+            Agree and continue
+        </button>
+    </div>
+
+</div>
+    <div id="login-screen" class="screen">
         <h2 style="color: #075E54;">WhatsApp Email Login</h2>
         <input type="email" id="email" placeholder="Email Address">
         <input type="password" id="password" placeholder="Password">
