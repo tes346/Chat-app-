@@ -31,18 +31,18 @@ auth.onAuthStateChanged(user => {
         database.ref('users/' + user.uid).once('value', snap => {
             const val = snap.val();
             if (val && val.username) {
+              showScreen('chat-container');
+                }else{
                 showScreen('contact-screen');
                 loadContacts();
+            }
+        });
             } else {
                 showScreen('profile-screen');
             }
         });
     } else {
         showScreen('login-screen');
-    }
-});
-}else{
-  showScreen('chat-container');
 }
 });
 // 3. LOGIN / SIGNUP
