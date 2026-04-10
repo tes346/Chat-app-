@@ -30,13 +30,10 @@ auth.onAuthStateChanged(user => {
         // Check if user has a username in the database
         database.ref('users/' + user.uid).once('value', snap => {
             const val = snap.val();
+          showScreen('chst-container')
             if (val && val.username) {
-              showScreen('chat-container');
-                }else{
                 showScreen('contact-screen');
                 loadContacts();
-            }
-        });
             } else {
                 showScreen('profile-screen');
             }
